@@ -1,0 +1,118 @@
+.page {
+  padding: 16px 20px 24px;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sec {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink2);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.addBtn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+
+.scheduleCard {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+  margin-bottom: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.scheduleCard:hover {
+  border-color: var(--accent);
+}
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.medName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.statusPill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+.active {
+  background: var(--accent-l);
+  color: var(--accent);
+}
+
+.past {
+  background: #F0EDE8;
+  color: var(--ink2);
+}
+
+.medDetail {
+  font-size: 13px;
+  color: var(--ink2);
+}
+
+.dateRange {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 6px;
+}
+
+.defaults {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 2px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.emptyIcon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.emptyState h2 {
+  font-size: 18px;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+
+.emptyState p {
+  font-size: 14px;
+  color: var(--ink2);
+  line-height: 1.6;
+}
+
+.empty {
+  font-size: 14px;
+  color: var(--ink2);
+}

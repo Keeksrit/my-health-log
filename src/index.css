@@ -1,0 +1,52 @@
+:root {
+  --bg:         #F5F1EB;
+  --card:       #FFFFFF;
+  --ink:        #1C1A17;
+  --ink2:       #6E6A62;
+  --ink3:       #B2ADA4;
+  --accent:     #3D6B4F;
+  --accent-l:   #E3EFE8;
+  --amber:      #C4752A;
+  --amber-l:    #FBF0E4;
+  --red:        #B83A3A;
+  --red-l:      #FAEAEA;
+  --border:     rgba(0,0,0,0.08);
+  --body-fill:  #EAE5DC;
+  --body-stroke:#A09890;
+  --r:          14px;
+  --nav-h:      64px;
+  --header-h:   80px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  overscroll-behavior: none;
+}
+
+body {
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+h1, h2, h3 {
+  font-family: 'Lora', serif;
+}
+
+button {
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+
+input, textarea {
+  font-family: 'DM Sans', sans-serif;
+}

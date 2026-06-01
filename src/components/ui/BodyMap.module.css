@@ -1,0 +1,91 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.viewToggle {
+  display: flex;
+  gap: 8px;
+  width: 180px;
+}
+
+.toggleBtn {
+  flex: 1;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 13px;
+  color: var(--ink2);
+  transition: all 0.15s;
+}
+
+.toggleBtn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--ink2);
+  margin: 0;
+}
+
+.svgWrap {
+  line-height: 0;
+}
+
+.svgWrap svg {
+  display: block;
+}
+
+.continueBtn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.continueBtn:hover {
+  background: #2f5340;
+}
+
+.backLink {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: var(--ink2);
+  padding: 4px 0;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.pill {
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--ink2);
+  transition: all 0.15s;
+}
+
+.pillActive {
+  background: var(--accent-l);
+  border-color: var(--accent);
+  color: var(--accent);
+}

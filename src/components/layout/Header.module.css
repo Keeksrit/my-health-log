@@ -1,0 +1,27 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 20px 12px;
+  height: var(--header-h);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.3px;
+}
+
+.date {
+  font-size: 12px;
+  color: var(--ink2);
+  margin-top: 2px;
+  font-family: 'DM Sans', sans-serif;
+}

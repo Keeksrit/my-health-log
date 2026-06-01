@@ -1,0 +1,10 @@
+.dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dot {
+  border-radius: 50%;
+  flex-shrink: 0;
+}

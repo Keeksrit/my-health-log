@@ -1,0 +1,50 @@
+.page {
+  padding: 16px 20px 24px;
+}
+
+.secRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sec {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink2);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.dupDayBtn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--accent-l);
+  color: var(--accent);
+  border: none;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.emptyIcon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty h2 {
+  font-size: 18px;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+
+.empty p {
+  font-size: 14px;
+  color: var(--ink2);
+  line-height: 1.6;
+}

@@ -27,9 +27,7 @@
   margin-top: 2px;
 }
 
-.titleBlock {
-  flex: 1;
-}
+.titleBlock { flex: 1; }
 
 .title {
   font-size: 18px;
@@ -80,12 +78,10 @@
   gap: 8px;
 }
 
-.row:last-child {
-  border-bottom: none;
-}
+.row:last-child { border-bottom: none; }
 
-.colDate   { flex: 2; }
-.colTime   { flex: 2.5; }
+.colDate   { flex: 1.8; }
+.colTime   { flex: 3; }
 .colCount  { flex: 1; }
 .colStatus { width: 12px; flex-shrink: 0; }
 
@@ -94,39 +90,58 @@
   color: var(--ink);
 }
 
+/* Time control — hours and minutes side by side */
 .timeControl {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
-.timeStepBtn {
+.timeUnit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stepBtn {
   width: 26px;
-  height: 26px;
-  border-radius: 50%;
+  height: 22px;
+  border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--bg);
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--ink2);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
   transition: all 0.1s;
+  padding: 0;
+  line-height: 1;
 }
 
-.timeStepBtn:active {
+.stepBtn:active {
   background: var(--accent-l);
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.timeVal {
-  font-size: 14px;
-  font-weight: 500;
+.timeSegment {
+  font-size: 15px;
+  font-weight: 600;
   color: var(--ink);
-  min-width: 38px;
+  min-width: 24px;
   text-align: center;
+  font-family: 'Lora', serif;
+}
+
+.timeSep {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink2);
+  margin-bottom: 2px;
+  align-self: center;
 }
 
 .countInput {
@@ -141,9 +156,7 @@
   outline: none;
 }
 
-.countInput:focus {
-  border-color: var(--accent);
-}
+.countInput:focus { border-color: var(--accent); }
 
 .savingDot {
   display: block;

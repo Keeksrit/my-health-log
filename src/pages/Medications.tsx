@@ -55,26 +55,36 @@ export default function Medications() {
         schedules.map(s => {
           const isActive = !s.end_date || s.end_date >= new Date().toISOString().slice(0, 10)
           return (
-            <button key={s.id} className={styles.scheduleCard} onClick={() => setActive(s)}>
+            <div key={s.id} className={styles.scheduleCard}>
               <div className={styles.cardRow}>
                 <span className={styles.medName}>{s.medication_type?.display_name}</span>
                 <span className={`${styles.statusPill} ${isActive ? styles.active : styles.past}`}>
                   {isActive ? 'Active' : 'Past'}
                 </span>
               </div>
-              {s.medication_type?.strength && (
-                <span className={styles.medDetail}>{s.medication_type.strength}</span>
-              )}
-              {s.medication_type?.form && (
-                <span className={styles.medDetail}> · {s.medication_type.form}</span>
-              )}
+              <div className={styles.cardDetails}>
+                {s.medication_type?.strength && (
+                  <span className={styles.medDetail}>{s.medication_type.strength}</span>
+                )}
+                {s.medication_type?.form && (
+                  <span className={styles.medDetail}> · {s.medication_type.form}</span>
+                )}
+              </div>
               <div className={styles.dateRange}>
                 {s.start_date} → {s.end_date ?? 'ongoing'}
               </div>
               <div className={styles.defaults}>
                 {s.default_count} × daily · {s.default_time}
               </div>
-            </button>
+              <div className={styles.cardActions}>
+                <button
+                  className={styles.editBtn}
+                  onClick={() => setActive(s)}
+                >
+                  Edit entries →
+                </button>
+              </div>
+            </div>
           )
         })
       )}

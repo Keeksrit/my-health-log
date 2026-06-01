@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
+import type { MedicationType, MedicationSchedule, MedicationLog } from '../types/medication'
 
 const db = createClient(
   import.meta.env.VITE_SUPABASE_URL as string,
   import.meta.env.VITE_SUPABASE_ANON_KEY as string,
   { db: { schema: 'health' } }
 )
-import type { MedicationType, MedicationSchedule, MedicationLog } from '../types/medication'
 
 // ── Types ──────────────────────────────────────────────
 export async function fetchMedicationTypes(): Promise<MedicationType[]> {
@@ -27,6 +27,14 @@ export async function insertMedicationType(
     .single()
   if (error) throw error
   return data as MedicationType
+}
+
+export async function updateMedicationType(
+  id: string,
+  type: Partial<Omit<MedicationType, 'id' | 'created_at'>>
+): Promise<void> {
+  const { error } = await db.from('medication_types').update(type).eq('id', id)
+  if (error) throw error
 }
 
 // ── Schedules ──────────────────────────────────────────
@@ -51,13 +59,21 @@ export async function insertSchedule(
   return data as MedicationSchedule
 }
 
+export async function updateSchedule(
+  id: string,
+  schedule: Partial<Omit<MedicationSchedule, 'id' | 'created_at' | 'medication_type'>>
+): Promise<void> {
+  const { error } = await db.from('medication_schedules').update(schedule).eq('id', id)
+  if (error) throw error
+}
+
 // ── Logs ───────────────────────────────────────────────
 export async function fetchLogsForSchedule(scheduleId: string): Promise<MedicationLog[]> {
   const { data, error } = await db
     .from('medication_logs')
     .select('*')
     .eq('schedule_id', scheduleId)
-    .order('date', { ascending: false })
+    .order('date', { ascending: true })
   if (error) throw error
   return data as MedicationLog[]
 }
@@ -71,14 +87,13 @@ export async function upsertLog(log: Omit<MedicationLog, 'id' | 'created_at'>): 
 
 export async function insertLogs(logs: Omit<MedicationLog, 'id' | 'created_at'>[]): Promise<void> {
   if (!logs.length) return
-  const { error } = await supabase
+  const { error } = await db
     .from('medication_logs')
     .insert(logs)
   if (error) throw error
 }
 
 // ── Helpers ────────────────────────────────────────────
-// Generate log rows from start_date up to today (or end_date, whichever is earlier)
 export function generateLogRows(
   scheduleId: string,
   startDate: string,
@@ -104,7 +119,6 @@ export function generateLogRows(
   return rows
 }
 
-// Bump time by N minutes (multiples of 15)
 export function bumpTime(time: string, minutes: number): string {
   const [h, m] = time.split(':').map(Number)
   const total = h * 60 + m + minutes

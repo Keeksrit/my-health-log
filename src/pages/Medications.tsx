@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react'
 import type { MedicationSchedule } from '../types/medication'
 import { fetchSchedulesWithTypes } from '../lib/medication'
 import AddMedicationFlow from './AddMedicationFlow'
+import EditMedicationModal from './EditMedicationModal'
 import MedicationTable from './MedicationTable'
 import styles from './Medications.module.css'
 
 export default function Medications() {
-  const [schedules, setSchedules]   = useState<MedicationSchedule[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [addOpen, setAddOpen]       = useState(false)
-  const [activeSchedule, setActive] = useState<MedicationSchedule | null>(null)
+  const [schedules, setSchedules]       = useState<MedicationSchedule[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [addOpen, setAddOpen]           = useState(false)
+  const [editSchedule, setEditSchedule] = useState<MedicationSchedule | null>(null)
+  const [activeSchedule, setActive]     = useState<MedicationSchedule | null>(null)
 
   async function load() {
     try {
@@ -22,18 +24,8 @@ export default function Medications() {
 
   useEffect(() => { load() }, [])
 
-  function handleSaved() {
-    setAddOpen(false)
-    load()
-  }
-
   if (activeSchedule) {
-    return (
-      <MedicationTable
-        schedule={activeSchedule}
-        onBack={() => setActive(null)}
-      />
-    )
+    return <MedicationTable schedule={activeSchedule} onBack={() => setActive(null)} />
   }
 
   return (
@@ -62,14 +54,12 @@ export default function Medications() {
                   {isActive ? 'Active' : 'Past'}
                 </span>
               </div>
-              <div className={styles.cardDetails}>
-                {s.medication_type?.strength && (
-                  <span className={styles.medDetail}>{s.medication_type.strength}</span>
-                )}
-                {s.medication_type?.form && (
-                  <span className={styles.medDetail}> · {s.medication_type.form}</span>
-                )}
-              </div>
+              {(s.medication_type?.strength || s.medication_type?.form) && (
+                <div className={styles.cardDetails}>
+                  {s.medication_type?.strength && <span className={styles.medDetail}>{s.medication_type.strength}</span>}
+                  {s.medication_type?.form && <span className={styles.medDetail}> · {s.medication_type.form}</span>}
+                </div>
+              )}
               <div className={styles.dateRange}>
                 {s.start_date} → {s.end_date ?? 'ongoing'}
               </div>
@@ -77,10 +67,10 @@ export default function Medications() {
                 {s.default_count} × daily · {s.default_time}
               </div>
               <div className={styles.cardActions}>
-                <button
-                  className={styles.editBtn}
-                  onClick={() => setActive(s)}
-                >
+                <button className={styles.editMedBtn} onClick={() => setEditSchedule(s)}>
+                  Edit medication
+                </button>
+                <button className={styles.editBtn} onClick={() => setActive(s)}>
                   Edit entries →
                 </button>
               </div>
@@ -92,7 +82,15 @@ export default function Medications() {
       {addOpen && (
         <AddMedicationFlow
           onClose={() => setAddOpen(false)}
-          onSaved={handleSaved}
+          onSaved={() => { setAddOpen(false); load(); }}
+        />
+      )}
+
+      {editSchedule && (
+        <EditMedicationModal
+          schedule={editSchedule}
+          onClose={() => setEditSchedule(null)}
+          onSaved={() => { setEditSchedule(null); load(); }}
         />
       )}
     </div>

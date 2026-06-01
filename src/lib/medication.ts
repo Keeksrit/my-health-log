@@ -1,9 +1,15 @@
-import { supabase } from './supabase'
+import { createClient } from '@supabase/supabase-js'
+
+const db = createClient(
+  import.meta.env.VITE_SUPABASE_URL as string,
+  import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+  { db: { schema: 'health' } }
+)
 import type { MedicationType, MedicationSchedule, MedicationLog } from '../types/medication'
 
 // ── Types ──────────────────────────────────────────────
 export async function fetchMedicationTypes(): Promise<MedicationType[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('medication_types')
     .select('*')
     .order('display_name')
@@ -14,7 +20,7 @@ export async function fetchMedicationTypes(): Promise<MedicationType[]> {
 export async function insertMedicationType(
   type: Omit<MedicationType, 'id' | 'created_at'>
 ): Promise<MedicationType> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('medication_types')
     .insert(type)
     .select()
@@ -25,7 +31,7 @@ export async function insertMedicationType(
 
 // ── Schedules ──────────────────────────────────────────
 export async function fetchSchedulesWithTypes(): Promise<MedicationSchedule[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('medication_schedules')
     .select(`*, medication_type:medication_types(*)`)
     .order('start_date', { ascending: false })
@@ -36,7 +42,7 @@ export async function fetchSchedulesWithTypes(): Promise<MedicationSchedule[]> {
 export async function insertSchedule(
   schedule: Omit<MedicationSchedule, 'id' | 'created_at' | 'medication_type'>
 ): Promise<MedicationSchedule> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('medication_schedules')
     .insert(schedule)
     .select()
@@ -47,7 +53,7 @@ export async function insertSchedule(
 
 // ── Logs ───────────────────────────────────────────────
 export async function fetchLogsForSchedule(scheduleId: string): Promise<MedicationLog[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('medication_logs')
     .select('*')
     .eq('schedule_id', scheduleId)
@@ -57,7 +63,7 @@ export async function fetchLogsForSchedule(scheduleId: string): Promise<Medicati
 }
 
 export async function upsertLog(log: Omit<MedicationLog, 'id' | 'created_at'>): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('medication_logs')
     .upsert(log, { onConflict: 'schedule_id,date' })
   if (error) throw error

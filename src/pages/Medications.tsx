@@ -91,6 +91,7 @@ export default function Medications() {
           schedule={editSchedule}
           onClose={() => setEditSchedule(null)}
           onSaved={() => { setEditSchedule(null); load(); }}
+          onDeleted={() => { setEditSchedule(null); load(); }}
         />
       )}
     </div>

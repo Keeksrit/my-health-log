@@ -1,16 +1,25 @@
 import { useState } from 'react'
 import type { MedicationSchedule } from '../types/medication'
 import { updateMedicationType, updateSchedule } from '../lib/medication'
+import { createClient } from '@supabase/supabase-js'
 import modalStyles from './Modal.module.css'
 import styles from './AddMedicationFlow.module.css'
+import ownStyles from './EditMedicationModal.module.css'
+
+const db = createClient(
+  import.meta.env.VITE_SUPABASE_URL as string,
+  import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+  { db: { schema: 'health' } }
+)
 
 interface Props {
   schedule: MedicationSchedule
   onClose: () => void
   onSaved: () => void
+  onDeleted: () => void
 }
 
-export default function EditMedicationModal({ schedule, onClose, onSaved }: Props) {
+export default function EditMedicationModal({ schedule, onClose, onSaved, onDeleted }: Props) {
   const med = schedule.medication_type!
 
   const [displayName,   setDisplayName]   = useState(med.display_name)
@@ -22,6 +31,7 @@ export default function EditMedicationModal({ schedule, onClose, onSaved }: Prop
   const [defaultCount,  setDefaultCount]  = useState(schedule.default_count)
   const [defaultTime,   setDefaultTime]   = useState(schedule.default_time)
   const [saving,        setSaving]        = useState(false)
+  const [deleting,      setDeleting]      = useState(false)
 
   async function handleSave() {
     if (!displayName.trim()) { alert('Display name is required.'); return }
@@ -45,6 +55,21 @@ export default function EditMedicationModal({ schedule, onClose, onSaved }: Prop
       alert('Something went wrong.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Delete ${med.display_name} and all its log entries? This cannot be undone.`)) return
+    setDeleting(true)
+    try {
+      // Cascade deletes schedules and logs automatically
+      await db.from('medication_types').delete().eq('id', med.id)
+      onDeleted()
+    } catch (e) {
+      console.error(e)
+      alert('Something went wrong.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -95,6 +120,10 @@ export default function EditMedicationModal({ schedule, onClose, onSaved }: Prop
 
         <button className={styles.nextBtn} disabled={saving} onClick={handleSave}>
           {saving ? 'Saving…' : 'Save changes'}
+        </button>
+
+        <button className={ownStyles.deleteBtn} disabled={deleting} onClick={handleDelete}>
+          {deleting ? 'Deleting…' : 'Delete medication'}
         </button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { MedicationSchedule, MedicationLog } from '../types/medication'
 import { fetchLogsForSchedule, upsertLog } from '../lib/medication'
 import styles from './MedicationTable.module.css'
@@ -9,9 +9,10 @@ interface Props {
 }
 
 export default function MedicationTable({ schedule, onBack }: Props) {
-  const [logs, setLogs]       = useState<MedicationLog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving]   = useState<Record<string, boolean>>({})
+  const [logs, setLogs]         = useState<MedicationLog[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [dirty, setDirty]       = useState<Record<string, MedicationLog>>({})
+  const [saving, setSaving]     = useState(false)
 
   async function load() {
     const data = await fetchLogsForSchedule(schedule.id)
@@ -21,17 +22,10 @@ export default function MedicationTable({ schedule, onBack }: Props) {
 
   useEffect(() => { load() }, [schedule.id])
 
-  async function handleChange(log: MedicationLog, field: 'time' | 'count', value: string) {
+  function handleChange(log: MedicationLog, field: 'time' | 'count', value: string) {
     const updated = { ...log, [field]: value }
     setLogs(prev => prev.map(l => l.id === log.id ? updated : l))
-    setSaving(prev => ({ ...prev, [log.id]: true }))
-    await upsertLog({
-      schedule_id: updated.schedule_id,
-      date:        updated.date,
-      time:        updated.time,
-      count:       updated.count,
-    })
-    setSaving(prev => ({ ...prev, [log.id]: false }))
+    setDirty(prev => ({ ...prev, [log.id]: updated }))
   }
 
   function bumpHour(log: MedicationLog, delta: number) {
@@ -49,7 +43,24 @@ export default function MedicationTable({ schedule, onBack }: Props) {
     handleChange(log, 'time', `${String(h).padStart(2, '0')}:${String(steps[newIdx]).padStart(2, '0')}`)
   }
 
+  async function handleSaveAll() {
+    const changes = Object.values(dirty)
+    if (!changes.length) return
+    setSaving(true)
+    for (const log of changes) {
+      await upsertLog({
+        schedule_id: log.schedule_id,
+        date:        log.date,
+        time:        log.time,
+        count:       log.count,
+      })
+    }
+    setDirty({})
+    setSaving(false)
+  }
+
   const med = schedule.medication_type
+  const hasDirty = Object.keys(dirty).length > 0
 
   return (
     <div className={styles.page}>
@@ -70,64 +81,66 @@ export default function MedicationTable({ schedule, onBack }: Props) {
       ) : logs.length === 0 ? (
         <p className={styles.loading}>No log entries yet.</p>
       ) : (
-        <div className={styles.tableWrap}>
-          <div className={styles.headerRow}>
-            <div className={styles.colDate}>Date</div>
-            <div className={styles.colTime}>Time</div>
-            <div className={styles.colCount}>Count</div>
-            <div className={styles.colStatus} />
-          </div>
+        <>
+          <div className={styles.tableWrap}>
+            <div className={styles.headerRow}>
+              <div className={styles.colDate}>Date</div>
+              <div className={styles.colTime}>Time</div>
+              <div className={styles.colCount}>Count</div>
+            </div>
 
-          {logs.map(log => {
-            const [h, m] = log.time.split(':').map(Number)
-            return (
-              <div key={log.id} className={styles.row}>
-                {/* Date */}
-                <div className={styles.colDate}>
-                  <span className={styles.dateText}>
-                    {new Date(log.date + 'T12:00:00').toLocaleDateString('en-GB', {
-                      weekday: 'short', day: 'numeric', month: 'short'
-                    })}
-                  </span>
-                </div>
+            {logs.map(log => {
+              const [h, m] = log.time.split(':').map(Number)
+              const isDirty = !!dirty[log.id]
+              return (
+                <div key={log.id} className={`${styles.row} ${isDirty ? styles.rowDirty : ''}`}>
+                  <div className={styles.colDate}>
+                    <span className={styles.dateText}>
+                      {new Date(log.date + 'T12:00:00').toLocaleDateString('en-GB', {
+                        weekday: 'short', day: 'numeric', month: 'short'
+                      })}
+                    </span>
+                  </div>
 
-                {/* Time */}
-                <div className={styles.colTime}>
-                  <div className={styles.timeControl}>
-                    {/* Hours */}
-                    <div className={styles.timeUnit}>
-                      <button className={styles.stepBtn} onClick={() => bumpHour(log, 1)}>+</button>
-                      <span className={styles.timeSegment}>{String(h).padStart(2, '0')}</span>
-                      <button className={styles.stepBtn} onClick={() => bumpHour(log, -1)}>−</button>
-                    </div>
-                    <span className={styles.timeSep}>:</span>
-                    {/* Minutes */}
-                    <div className={styles.timeUnit}>
-                      <button className={styles.stepBtn} onClick={() => bumpMinute(log, 1)}>+</button>
-                      <span className={styles.timeSegment}>{String(m).padStart(2, '0')}</span>
-                      <button className={styles.stepBtn} onClick={() => bumpMinute(log, -1)}>−</button>
+                  <div className={styles.colTime}>
+                    <div className={styles.timeControl}>
+                      <div className={styles.timeUnit}>
+                        <button className={styles.stepBtn} onClick={() => bumpHour(log, 1)}>+</button>
+                        <span className={styles.timeSegment}>{String(h).padStart(2, '0')}</span>
+                        <button className={styles.stepBtn} onClick={() => bumpHour(log, -1)}>−</button>
+                      </div>
+                      <span className={styles.timeSep}>:</span>
+                      <div className={styles.timeUnit}>
+                        <button className={styles.stepBtn} onClick={() => bumpMinute(log, 1)}>+</button>
+                        <span className={styles.timeSegment}>{String(m).padStart(2, '0')}</span>
+                        <button className={styles.stepBtn} onClick={() => bumpMinute(log, -1)}>−</button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Count */}
-                <div className={styles.colCount}>
-                  <input
-                    className={styles.countInput}
-                    type="text"
-                    value={log.count}
-                    onChange={e => handleChange(log, 'count', e.target.value)}
-                  />
+                  <div className={styles.colCount}>
+                    <input
+                      className={styles.countInput}
+                      type="text"
+                      value={log.count}
+                      onChange={e => handleChange(log, 'count', e.target.value)}
+                    />
+                  </div>
                 </div>
+              )
+            })}
+          </div>
 
-                {/* Saving indicator */}
-                <div className={styles.colStatus}>
-                  {saving[log.id] && <span className={styles.savingDot} />}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+          <div className={styles.saveBarWrap}>
+            <button
+              className={`${styles.saveBar} ${hasDirty ? styles.saveBarActive : ''}`}
+              disabled={!hasDirty || saving}
+              onClick={handleSaveAll}
+            >
+              {saving ? 'Saving…' : hasDirty ? `Save changes (${Object.keys(dirty).length})` : 'No unsaved changes'}
+            </button>
+          </div>
+        </>
       )}
     </div>
   )

@@ -17,8 +17,8 @@ export interface Food {
 export interface LogEntry {
   id: string
   food_id: string
-  amount: number
-  unit: string
+  amount: number | null
+  unit: string | null
   eaten_at: string
   created_at: string
   // joined

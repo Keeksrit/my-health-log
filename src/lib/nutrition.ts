@@ -176,15 +176,23 @@ export async function fetchLog(): Promise<LogEntry[]> {
 }
 
 export async function insertLogEntry(
-  input: { food_id: string; amount: number; unit: string; eaten_at: string }
+  input: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }
 ): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').insert(input)
   if (error) throw error
 }
 
+export async function insertLogEntries(
+  entries: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }[]
+): Promise<void> {
+  if (!entries.length) return
+  const { error } = await db.from('nutrition_consumption_log').insert(entries)
+  if (error) throw error
+}
+
 export async function updateLogEntry(
   id: string,
-  input: { food_id: string; amount: number; unit: string; eaten_at: string }
+  input: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }
 ): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').update(input).eq('id', id)
   if (error) throw error

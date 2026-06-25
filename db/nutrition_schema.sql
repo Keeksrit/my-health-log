@@ -28,8 +28,8 @@ create table if not exists health.nutrition_food_ingredients (
 create table if not exists health.nutrition_consumption_log (
   id          uuid primary key default gen_random_uuid(),
   food_id     uuid not null references health.nutrition_foods(id) on delete restrict,
-  amount      numeric not null,
-  unit        text not null,
+  amount      numeric,
+  unit        text,
   eaten_at    timestamptz not null,
   created_at  timestamptz not null default now()
 );

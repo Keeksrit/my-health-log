@@ -34,7 +34,9 @@ export default function Nutrition() {
         fetchIngredients(),
         fetchLog(),
       ])
-      setFoods(f); setIngredients(i); setLog(l)
+      setFoods(f)
+      setIngredients(i)
+      setLog(l)
     } catch (e: any) {
       setError(e?.message ?? 'Could not load nutrition data.')
     } finally {
@@ -48,7 +50,7 @@ export default function Nutrition() {
 
   async function handleDeleteEntry(entry: LogEntry) {
     if (!confirm('Delete this log entry?')) return
-    try { await deleteLogEntry(entry.id); load() }
+    try { await deleteLogEntry(entry.id); await load() }
     catch (e: any) { setError(e?.message ?? 'Could not delete entry.') }
   }
 
@@ -170,13 +172,13 @@ export default function Nutrition() {
         />
       )}
       {modal === 'ingredient' && (
-        <AddIngredientModal onClose={closeModal} onSaved={() => afterSave()} />
+        <AddIngredientModal onClose={closeModal} onSaved={afterSave} />
       )}
       {modal === 'logEntry' && (
         <LogEntryModal foods={foods} entry={editEntry} onClose={closeModal} onSaved={afterSave} />
       )}
       {modal === 'import' && (
-        <ImportCsvModal onClose={closeModal} onSaved={() => load()} />
+        <ImportCsvModal onClose={closeModal} onSaved={load} />
       )}
     </div>
   )

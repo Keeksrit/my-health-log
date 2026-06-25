@@ -75,15 +75,33 @@ export async function insertIngredient(
   return data as Ingredient
 }
 
+// Escape LIKE wildcards so an ilike lookup matches the name literally (case-insensitively).
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, c => `\\${c}`)
+}
+
 export async function getOrCreateIngredientByName(name: string): Promise<Ingredient> {
   const { data, error } = await db
     .from('nutrition_ingredients')
     .select('*')
-    .ilike('name', name)
+    .ilike('name', escapeLike(name))
     .maybeSingle()
   if (error) throw error
   if (data) return data as Ingredient
-  return insertIngredient({ name, type: null })
+  try {
+    return await insertIngredient({ name, type: null })
+  } catch (e: any) {
+    if (e?.code === '23505') {
+      const { data: existing, error: refErr } = await db
+        .from('nutrition_ingredients')
+        .select('*')
+        .ilike('name', escapeLike(name))
+        .maybeSingle()
+      if (refErr) throw refErr
+      if (existing) return existing as Ingredient
+    }
+    throw e
+  }
 }
 
 // ── Foods ──────────────────────────────────────────────
@@ -127,11 +145,24 @@ export async function getOrCreateFoodByName(name: string): Promise<Food> {
   const { data, error } = await db
     .from('nutrition_foods')
     .select('*')
-    .ilike('name', name)
+    .ilike('name', escapeLike(name))
     .maybeSingle()
   if (error) throw error
   if (data) return data as Food
-  return insertFood({ name, type: null }, [])
+  try {
+    return await insertFood({ name, type: null }, [])
+  } catch (e: any) {
+    if (e?.code === '23505') {
+      const { data: existing, error: refErr } = await db
+        .from('nutrition_foods')
+        .select('*')
+        .ilike('name', escapeLike(name))
+        .maybeSingle()
+      if (refErr) throw refErr
+      if (existing) return existing as Food
+    }
+    throw e
+  }
 }
 
 // ── Consumption log ────────────────────────────────────

@@ -33,3 +33,5 @@ create table if not exists health.nutrition_consumption_log (
   eaten_at    timestamptz not null,
   created_at  timestamptz not null default now()
 );
+create index if not exists nutrition_consumption_log_eaten_at_idx
+  on health.nutrition_consumption_log (eaten_at desc);

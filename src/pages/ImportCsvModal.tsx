@@ -65,24 +65,31 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
         for (const r of dropHeader(rows, 'name')) {
           const [name, type] = r
           if (!name?.trim()) { sum.errors.push(`Empty name in row: ${r.join(',')}`); continue }
-          await insertIngredient({ name: name.trim(), type: type?.trim() || null })
-          sum.inserted++
+          try {
+            await insertIngredient({ name: name.trim(), type: type?.trim() || null })
+            sum.inserted++
+          } catch (e: any) {
+            sum.errors.push(`Could not import ingredient "${name.trim()}": ${e?.message ?? 'unknown error'}`)
+          }
         }
       } else if (format === 'foods') {
         for (const r of dropHeader(rows, 'name')) {
           const [name, type, ingredientsCell] = r
           if (!name?.trim()) { sum.errors.push(`Empty name in row: ${r.join(',')}`); continue }
-          const ingNames = (ingredientsCell ?? '')
-            .split(',').map(s => s.trim()).filter(Boolean)
-          const ids: string[] = []
-          for (const ingName of ingNames) {
-            const existing = await getOrCreateIngredientByName(ingName)
-            // getOrCreateIngredientByName creates a stub when missing; flag new stubs.
-            if (existing.type === null) sum.stubs.push(`ingredient: ${existing.name}`)
-            ids.push(existing.id)
+          try {
+            const ingNames = (ingredientsCell ?? '')
+              .split(',').map(s => s.trim()).filter(Boolean)
+            const ids: string[] = []
+            for (const ingName of ingNames) {
+              const existing = await getOrCreateIngredientByName(ingName)
+              if (existing.type === null) sum.stubs.push(`ingredient: ${existing.name}`)
+              ids.push(existing.id)
+            }
+            await insertFood({ name: name.trim(), type: type?.trim() || null }, ids)
+            sum.inserted++
+          } catch (e: any) {
+            sum.errors.push(`Could not import food "${name.trim()}": ${e?.message ?? 'unknown error'}`)
           }
-          await insertFood({ name: name.trim(), type: type?.trim() || null }, ids)
-          sum.inserted++
         }
       } else {
         for (const r of dropHeader(rows, 'food')) {
@@ -94,14 +101,18 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
           if (!LOG_UNITS.includes(u as any)) { sum.errors.push(`Bad unit "${unit}" for ${foodName}`); continue }
           const when = eatenAt?.trim() ? new Date(eatenAt.trim()) : new Date()
           if (isNaN(when.getTime())) { sum.errors.push(`Bad date "${eatenAt}" for ${foodName}`); continue }
-          const food = await getOrCreateFoodByName(foodName.trim())
-          if (!food.ingredients?.length) sum.stubs.push(`food: ${food.name}`)
-          await insertLogEntry({ food_id: food.id, amount: amt, unit: u, eaten_at: when.toISOString() })
-          sum.inserted++
+          try {
+            const food = await getOrCreateFoodByName(foodName.trim())
+            if (!food.ingredients?.length) sum.stubs.push(`food: ${food.name}`)
+            await insertLogEntry({ food_id: food.id, amount: amt, unit: u, eaten_at: when.toISOString() })
+            sum.inserted++
+          } catch (e: any) {
+            sum.errors.push(`Could not import log for "${foodName.trim()}": ${e?.message ?? 'unknown error'}`)
+          }
         }
       }
       setSummary(sum)
-      onSaved()
+      if (sum.inserted > 0) onSaved()
     } catch (e: any) {
       setError(e?.message ?? 'Import failed.')
     } finally {

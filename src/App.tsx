@@ -9,6 +9,7 @@ import Today from './pages/Today'
 import Calendar from './pages/Calendar'
 import LogSymptom from './pages/LogSymptom'
 import Medications from './pages/Medications'
+import Nutrition from './pages/Nutrition'
 import styles from './App.module.css'
 
 export default function App() {
@@ -45,6 +46,7 @@ export default function App() {
             <Route path="/calendar"  element={<Calendar entries={entries} onReload={reload} />} />
             <Route path="/log"         element={<LogSymptom onSaved={reload} />} />
             <Route path="/medications" element={<Medications />} />
+            <Route path="/nutrition"   element={<Nutrition />} />
           </Routes>
         )}
       </main>

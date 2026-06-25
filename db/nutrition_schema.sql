@@ -35,3 +35,15 @@ create table if not exists health.nutrition_consumption_log (
 );
 create index if not exists nutrition_consumption_log_eaten_at_idx
   on health.nutrition_consumption_log (eaten_at desc);
+
+-- Grants: the app authenticates as the `anon` role (VITE_SUPABASE_ANON_KEY).
+-- Without these, querying the tables fails with "permission denied for table ...".
+-- This mirrors the access the existing medication_* tables already have.
+grant usage on schema health to anon, authenticated;
+grant select, insert, update, delete on
+  health.nutrition_ingredients,
+  health.nutrition_foods,
+  health.nutrition_food_ingredients,
+  health.nutrition_consumption_log
+to anon, authenticated;
+-- No sequence grants needed: primary keys use gen_random_uuid(), not serial.

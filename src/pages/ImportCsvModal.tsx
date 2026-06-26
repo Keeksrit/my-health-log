@@ -95,10 +95,15 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
         for (const r of dropHeader(rows, 'food')) {
           const [foodName, amount, unit, eatenAt] = r
           if (!foodName?.trim()) { sum.errors.push(`Empty food in row: ${r.join(',')}`); continue }
-          const amt = Number(amount)
-          if (!(amt > 0)) { sum.errors.push(`Bad amount "${amount}" for ${foodName}`); continue }
-          const u = (unit ?? '').trim()
-          if (!LOG_UNITS.includes(u as any)) { sum.errors.push(`Bad unit "${unit}" for ${foodName}`); continue }
+          const amountRaw = (amount ?? '').trim()
+          let amt: number | null = null
+          let u: string | null = null
+          if (amountRaw) {
+            amt = Number(amountRaw)
+            if (!(amt > 0)) { sum.errors.push(`Bad amount "${amount}" for ${foodName}`); continue }
+            u = (unit ?? '').trim()
+            if (!LOG_UNITS.includes(u as any)) { sum.errors.push(`Bad unit "${unit}" for ${foodName}`); continue }
+          }
           const when = eatenAt?.trim() ? new Date(eatenAt.trim()) : new Date()
           if (isNaN(when.getTime())) { sum.errors.push(`Bad date "${eatenAt}" for ${foodName}`); continue }
           try {

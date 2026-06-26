@@ -113,7 +113,7 @@ export default function Nutrition() {
               <div key={e.id} className={styles.card}>
                 <div className={styles.cardRow}>
                   <span className={styles.foodName}>{e.food?.name ?? 'Unknown food'}</span>
-                  <span className={styles.meta}>{e.amount} {e.unit}</span>
+                  {e.amount != null && <span className={styles.meta}>{e.amount} {e.unit}</span>}
                 </div>
                 <div className={styles.cardRow}>
                   <span className={styles.meta}>{new Date(e.eaten_at).toLocaleString()}</span>

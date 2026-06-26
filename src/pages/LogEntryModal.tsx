@@ -19,12 +19,12 @@ interface Row {
   unit: string
 }
 
-// Now, snapped down to the nearest 15-minute boundary.
-function startOfNow(): Date {
-  const d = new Date()
-  d.setSeconds(0, 0)
-  d.setMinutes(Math.floor(d.getMinutes() / 15) * 15)
-  return d
+// Snap a date down to the nearest 15-minute boundary.
+function snap15(d: Date): Date {
+  const out = new Date(d)
+  out.setSeconds(0, 0)
+  out.setMinutes(Math.floor(out.getMinutes() / 15) * 15)
+  return out
 }
 
 function formatEatenAt(d: Date): string {
@@ -39,13 +39,13 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved }: Props)
   const [foodList, setFoodList] = useState<Food[]>(foods)
   const [picked, setPicked] = useState<Row[]>(() => {
     if (entry) {
-      const f = foods.find(x => x.id === entry.food_id)
+      const f = foods.find(x => x.id === entry.food_id) ?? entry.food
       if (f) return [{ food: f, amount: entry.amount != null ? String(entry.amount) : '', unit: entry.unit ?? 'serving' }]
     }
     return []
   })
   const [query, setQuery] = useState('')
-  const [eatenAt, setEatenAt] = useState<Date>(() => (entry ? new Date(entry.eaten_at) : startOfNow()))
+  const [eatenAt, setEatenAt] = useState<Date>(() => snap15(entry ? new Date(entry.eaten_at) : new Date()))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 

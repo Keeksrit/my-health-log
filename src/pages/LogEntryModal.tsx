@@ -11,6 +11,7 @@ interface Props {
   entry?: LogEntry | null
   onClose: () => void
   onSaved: () => void
+  onDelete?: () => void
 }
 
 interface Row {
@@ -33,7 +34,7 @@ function formatEatenAt(d: Date): string {
   return `${date} · ${time}`
 }
 
-export default function LogEntryModal({ foods, entry, onClose, onSaved }: Props) {
+export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete }: Props) {
   const editing = !!entry
 
   const [foodList, setFoodList] = useState<Food[]>(foods)
@@ -201,6 +202,17 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved }: Props)
         <button className={formStyles.nextBtn} disabled={saving} onClick={handleSave}>
           {saving ? 'Saving…' : editing ? 'Save changes' : picked.length > 1 ? `Log ${picked.length} foods` : 'Log it'}
         </button>
+
+        {editing && onDelete && (
+          <button
+            className={formStyles.nextBtn}
+            style={{ background: 'none', color: 'var(--danger, #B83A3A)', border: '1px solid var(--danger, #B83A3A)', marginTop: 8 }}
+            disabled={saving}
+            onClick={onDelete}
+          >
+            Delete entry
+          </button>
+        )}
       </div>
     </div>
   )

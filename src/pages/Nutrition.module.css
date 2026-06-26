@@ -1,4 +1,20 @@
-.page { padding: 16px 20px 24px; }
+/* Break out of the 430px app frame so the log timeline is ~3x wider,
+   giving room to compare eating times across days. Fixed + left/right:0 +
+   margin:auto centers a wide page on the viewport WITHOUT a transform
+   (a transform here would trap the position:fixed modals rendered inside
+   this page). It scrolls internally, between the fixed header and nav. */
+.page {
+  box-sizing: border-box;
+  position: fixed;
+  top: var(--header-h);
+  bottom: var(--nav-h);
+  left: 0;
+  right: 0;
+  width: min(100vw, 1290px);
+  margin: 0 auto;
+  overflow-y: auto;
+  padding: 16px 20px 24px;
+}
 
 .tabs {
   display: flex;
@@ -92,3 +108,141 @@
   background: var(--accent-l); color: var(--accent);
   border-radius: 14px; padding: 3px 10px; font-size: 12px;
 }
+
+/* ── Log timeline ── */
+.logLayout { display: flex; gap: 24px; align-items: flex-start; margin-top: 4px; }
+.timeline { flex: 1; min-width: 0; }
+
+.sidebar {
+  flex: 0 0 220px;
+  position: sticky;
+  top: 0;
+}
+.countList { list-style: none; margin: 0; padding: 0; }
+.countItem {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.countItem:hover { background: var(--accent-l); }
+.countItemActive { background: var(--accent-l); }
+.countItemActive .countName { color: var(--accent); font-weight: 600; }
+.countName { font-size: 14px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.clearHighlight {
+  margin-top: 10px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.countBadge {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-l);
+  border-radius: 12px;
+  padding: 2px 9px;
+}
+
+/* Shared left label column so the hour axis lines up with each day's track. */
+.axisRow, .dayRow { display: flex; align-items: flex-end; gap: 12px; }
+.axisRow { margin-bottom: 4px; }
+.dayRow { margin-bottom: 8px; }
+
+.dayLabel {
+  flex: 0 0 88px;
+  width: 88px;
+  font-size: 12px;
+  color: var(--ink2);
+  text-align: right;
+  padding-bottom: 4px;
+  white-space: nowrap;
+}
+
+.axis { position: relative; flex: 1; height: 14px; }
+.axisTick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--ink3);
+}
+
+.track {
+  position: relative;
+  flex: 1;
+  min-height: 22px;
+  /* faint vertical gridlines every 2 hours (12 intervals across 24h) */
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--border) 0 1px,
+      transparent 1px calc(100% / 12)
+    );
+  border-bottom: 2px solid var(--border);
+}
+
+/* Shaded fasting periods — before the first meal and after the last meal.
+   The un-shaded gap between them is the day's eating window, so its width
+   is easy to compare down the column of days. */
+.fast {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--accent-l);
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px; /* center on its time position */
+  padding: 0;
+  border: 2px solid var(--card);
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  z-index: 1;
+}
+.dot:hover { z-index: 3; }
+
+.dotActive {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-l);
+  z-index: 4;
+}
+.dotDim { opacity: 0.18; }
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  white-space: nowrap;
+  background: var(--ink);
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 5;
+}
+.dot:hover .tooltip { display: block; }

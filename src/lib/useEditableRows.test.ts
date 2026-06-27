@@ -11,6 +11,9 @@ describe('rowsEqual', () => {
   it('is false when key sets differ', () => {
     expect(rowsEqual({ id: '1' }, { id: '1', name: 'a' })).toBe(false)
   })
+  it('treats null and undefined as distinct', () => {
+    expect(rowsEqual({ id: '1', amount: null }, { id: '1', amount: undefined })).toBe(false)
+  })
 })
 
 describe('computeDirty', () => {

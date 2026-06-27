@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
-export function rowsEqual(a: Record<string, any>, b: Record<string, any>): boolean {
+export function rowsEqual<T extends Record<string, unknown>>(a: T, b: T): boolean {
   const ak = Object.keys(a)
   const bk = Object.keys(b)
   if (ak.length !== bk.length) return false
@@ -25,12 +25,14 @@ export function useEditableRows<T extends { id: string }>(source: T[]) {
   const rows = editing ? working : source
 
   function begin() {
+    if (editing) return
     setWorking(source.map(r => ({ ...r })))
     setDeletedIds([])
     setEditing(true)
   }
-  function cancel() { setEditing(false); setDeletedIds([]) }
-  function finish() { setEditing(false); setDeletedIds([]) }
+  function cancel() { setWorking([]); setDeletedIds([]); setEditing(false) }
+  /** Call after a successful save to exit edit mode. Mirrors cancel(). */
+  function finish() { setWorking([]); setDeletedIds([]); setEditing(false) }
   function setRow(id: string, patch: Partial<T>) {
     setWorking(prev => prev.map(r => (r.id === id ? { ...r, ...patch } : r)))
   }
@@ -39,9 +41,15 @@ export function useEditableRows<T extends { id: string }>(source: T[]) {
     setDeletedIds(prev => (source.some(r => r.id === id) ? [...prev, id] : prev))
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const dirtyRows = useMemo(
+    () => editing ? computeDirty(source, working) : [],
+    [editing, source, working]
+  )
+
   return {
     editing, rows, begin, cancel, finish, setRow, removeRow,
-    dirtyRows: editing ? computeDirty(source, working) : [],
+    dirtyRows,
     deletedIds,
   }
 }

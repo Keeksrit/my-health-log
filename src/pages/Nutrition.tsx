@@ -12,6 +12,7 @@ import AddIngredientModal from './AddIngredientModal'
 import LogEntryModal from './LogEntryModal'
 import ImportCsvModal from './ImportCsvModal'
 import styles from './Nutrition.module.css'
+import IngredientsTable from './IngredientsTable'
 
 type Tab = 'log' | 'library'
 type Modal = null | 'food' | 'ingredient' | 'logEntry' | 'import'
@@ -287,17 +288,7 @@ export default function Nutrition() {
             </div>
           ))}
 
-          <p className={styles.sectionLabel}>Ingredients ({ingredients.length})</p>
-          {ingredients.length === 0 ? (
-            <p className={styles.empty}>No ingredients yet.</p>
-          ) : ingredients.map(i => (
-            <div key={i.id} className={styles.card}>
-              <div className={styles.cardRow}>
-                <span className={styles.foodName} style={{ fontSize: 14 }}>{i.name}</span>
-                <span className={styles.meta}>{i.type ?? '—'}</span>
-              </div>
-            </div>
-          ))}
+          <IngredientsTable ingredients={ingredients} onSaved={load} />
         </>
       )}
 

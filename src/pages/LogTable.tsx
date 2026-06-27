@@ -83,7 +83,7 @@ export default function LogTable({ log, foods, onSaved }: Props) {
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
-            <tr><th>Date</th><th>Time</th><th>Type</th><th>Food</th><th>Amount</th><th>Unit</th>{t.editing && <th />}</tr>
+            <tr><th>Date</th><th>Time</th><th>Food type</th><th>Food name</th><th>Amount</th><th>Unit</th>{t.editing && <th />}</tr>
           </thead>
           <tbody>
             {t.rows.map(r => (

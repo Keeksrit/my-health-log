@@ -5,7 +5,6 @@ import {
   fetchIngredients,
   fetchLog,
   deleteLogEntry,
-  distinctIngredientTypes,
 } from '../lib/nutrition'
 import AddFoodFlow from './AddFoodFlow'
 import AddIngredientModal from './AddIngredientModal'
@@ -13,6 +12,7 @@ import LogEntryModal from './LogEntryModal'
 import ImportCsvModal from './ImportCsvModal'
 import styles from './Nutrition.module.css'
 import IngredientsTable from './IngredientsTable'
+import FoodsTable from './FoodsTable'
 
 type Tab = 'log' | 'library'
 type Modal = null | 'food' | 'ingredient' | 'logEntry' | 'import'
@@ -104,7 +104,6 @@ export default function Nutrition() {
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState<Modal>(null)
   const [editEntry, setEditEntry] = useState<LogEntry | null>(null)
-  const [detailFood, setDetailFood] = useState<Food | null>(null)
   const [highlightFood, setHighlightFood] = useState<string | null>(null)
   const [error, setError] = useState('')
 
@@ -133,38 +132,6 @@ export default function Nutrition() {
     if (!confirm('Delete this log entry?')) return false
     try { await deleteLogEntry(entry.id); await load(); return true }
     catch (e: any) { setError(e?.message ?? 'Could not delete entry.'); return false }
-  }
-
-  // ── Food detail view ──
-  if (detailFood) {
-    const types = distinctIngredientTypes(detailFood.ingredients ?? [])
-    return (
-      <div className={styles.page}>
-        <button className={styles.backBtn} onClick={() => setDetailFood(null)}>←</button>
-        <p className={styles.foodName}>{detailFood.name}</p>
-        {detailFood.type && <p className={styles.meta}>{detailFood.type}</p>}
-
-        <p className={styles.sectionLabel}>Ingredients</p>
-        {detailFood.ingredients?.length ? (
-          <ul>
-            {detailFood.ingredients.map(i => (
-              <li key={i.id} style={{ fontSize: 14 }}>{i.name}{i.type ? ` · ${i.type}` : ''}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className={styles.empty}>No ingredients recorded.</p>
-        )}
-
-        {types.length > 0 && (
-          <>
-            <p className={styles.sectionLabel}>Types</p>
-            <div className={styles.tagRow}>
-              {types.map(t => <span key={t} className={styles.tag}>{t}</span>)}
-            </div>
-          </>
-        )}
-      </div>
-    )
   }
 
   return (
@@ -273,20 +240,7 @@ export default function Nutrition() {
             <button className={`${styles.actionBtn} ${styles.actionBtnAlt}`} onClick={() => setModal('import')}>⬆ Import CSV</button>
           </div>
 
-          <p className={styles.sectionLabel}>Foods ({foods.length})</p>
-          {foods.length === 0 ? (
-            <p className={styles.empty}>No foods yet.</p>
-          ) : foods.map(f => (
-            <div key={f.id} className={styles.card}>
-              <div className={styles.cardRow}>
-                <span className={styles.foodName}>{f.name}</span>
-                <button className={styles.linkBtn} onClick={() => setDetailFood(f)}>Open →</button>
-              </div>
-              <div className={styles.meta}>
-                {f.type ? `${f.type} · ` : ''}{f.ingredients?.length ?? 0} ingredient(s)
-              </div>
-            </div>
-          ))}
+          <FoodsTable foods={foods} allIngredients={ingredients} onSaved={load} />
 
           <IngredientsTable ingredients={ingredients} onSaved={load} />
         </>
@@ -297,7 +251,6 @@ export default function Nutrition() {
           foods={foods}
           onClose={closeModal}
           onSaved={afterSave}
-          onOpenFood={(f) => { closeModal(); setDetailFood(f) }}
         />
       )}
       {modal === 'ingredient' && (

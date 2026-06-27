@@ -156,7 +156,6 @@ export async function fetchFoodsWithIngredients(): Promise<Food[]> {
   return (data ?? []).map((row: any): Food => ({
     id: row.id,
     name: row.name,
-    type: row.type,
     created_at: row.created_at,
     ingredients: (row.nutrition_food_ingredients ?? [])
       .map((link: any) => link.nutrition_ingredients as Ingredient)
@@ -165,7 +164,7 @@ export async function fetchFoodsWithIngredients(): Promise<Food[]> {
 }
 
 export async function insertFood(
-  input: { name: string; type: string | null },
+  input: { name: string },
   ingredientIds: string[]
 ): Promise<Food> {
   const { data, error } = await db
@@ -192,7 +191,7 @@ export async function getOrCreateFoodByName(name: string): Promise<Food> {
   if (error) throw error
   if (data) return data as Food
   try {
-    return await insertFood({ name, type: null }, [])
+    return await insertFood({ name }, [])
   } catch (e: any) {
     if (e?.code === '23505') {
       const { data: existing, error: refErr } = await db

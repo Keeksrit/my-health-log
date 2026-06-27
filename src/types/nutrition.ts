@@ -8,7 +8,6 @@ export interface Ingredient {
 export interface Food {
   id: string
   name: string
-  type: string | null
   created_at: string
   // joined via nutrition_food_ingredients
   ingredients?: Ingredient[]
@@ -35,8 +34,6 @@ export const INGREDIENT_TYPES = [
   'Fats & Oils',
   'Processed',
 ] as const
-
-export const FOOD_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Drink'] as const
 
 export const LOG_UNITS = ['g', 'ml', 'serving', 'piece'] as const
 

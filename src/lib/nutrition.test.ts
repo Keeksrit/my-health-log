@@ -9,7 +9,7 @@ function ing(id: string, name: string, type: string | null = null): Ingredient {
   return { id, name, type, created_at: '' }
 }
 function food(id: string, name: string, ingredients: Ingredient[]): Food {
-  return { id, name, type: null, created_at: '', ingredients }
+  return { id, name, created_at: '', ingredients }
 }
 
 describe('matchFoodByIngredientSet', () => {

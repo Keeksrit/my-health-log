@@ -13,7 +13,6 @@ create unique index if not exists nutrition_ingredients_name_lower_idx
 create table if not exists health.nutrition_foods (
   id          uuid primary key default gen_random_uuid(),
   name        text not null,
-  type        text,
   created_at  timestamptz not null default now()
 );
 create unique index if not exists nutrition_foods_name_lower_idx

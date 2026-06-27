@@ -175,7 +175,7 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
           <div className={styles.suggestions}>
             {suggestions.map(f => (
               <button key={f.id} className={styles.suggestion} onClick={() => selectFood(f)}>
-                {f.name}{f.type ? ` · ${f.type}` : ''}
+                {f.name}
               </button>
             ))}
             {!exactExists && (

@@ -74,7 +74,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
         }
       } else if (format === 'foods') {
         for (const r of dropHeader(rows, 'name')) {
-          const [name, type, ingredientsCell] = r
+          const [name, ingredientsCell] = r
           if (!name?.trim()) { sum.errors.push(`Empty name in row: ${r.join(',')}`); continue }
           try {
             const ingNames = (ingredientsCell ?? '')
@@ -85,7 +85,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
               if (existing.type === null) sum.stubs.push(`ingredient: ${existing.name}`)
               ids.push(existing.id)
             }
-            await insertFood({ name: name.trim(), type: type?.trim() || null }, ids)
+            await insertFood({ name: name.trim() }, ids)
             sum.inserted++
           } catch (e: any) {
             sum.errors.push(`Could not import food "${name.trim()}": ${e?.message ?? 'unknown error'}`)
@@ -156,7 +156,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
             <label className={formStyles.label}>FORMAT</label>
             <select className={formStyles.input} value={format} onChange={e => { setFormat(e.target.value as Format); setRows(null) }}>
               <option value="ingredients">Ingredients — name, type</option>
-              <option value="foods">Foods — name, type, ingredients</option>
+              <option value="foods">Foods — name, ingredients</option>
               <option value="log">Log — food, amount, unit, eaten_at</option>
             </select>
 

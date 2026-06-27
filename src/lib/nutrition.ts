@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Food, Ingredient, LogEntry } from '../types/nutrition'
-import { INGREDIENT_TYPES } from '../types/nutrition'
+import { INGREDIENT_TYPES, LOG_TYPES } from '../types/nutrition'
 
 const db = createClient(
   import.meta.env.VITE_SUPABASE_URL as string,
@@ -9,6 +9,15 @@ const db = createClient(
 )
 
 // ── Pure helpers ───────────────────────────────────────
+export function validateLogType(raw: string): string | null {
+  const v = raw.trim().toLowerCase()
+  if (!v) return null
+  if (!(LOG_TYPES as readonly string[]).includes(v)) {
+    throw new Error(`Unknown type "${raw}". Use one of: ${LOG_TYPES.join(', ')}.`)
+  }
+  return v
+}
+
 export function matchFoodByIngredientSet(foods: Food[], ingredientIds: string[]): Food | null {
   const target = new Set(ingredientIds)
   for (const f of foods) {

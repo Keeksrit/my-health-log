@@ -276,3 +276,10 @@
   font-size: 16px; cursor: pointer; padding: 0 4px;
 }
 .tableError { font-size: 13px; color: var(--danger, #B83A3A); margin: 6px 0 0; }
+
+.subToggle { display: flex; gap: 6px; margin-bottom: 12px; }
+.subBtn {
+  padding: 5px 12px; border: 1px solid var(--border); border-radius: 16px;
+  background: none; font-size: 13px; color: var(--ink2); cursor: pointer;
+}
+.subBtnActive { background: var(--accent-l); color: var(--accent); border-color: var(--accent); }

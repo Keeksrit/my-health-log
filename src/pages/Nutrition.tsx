@@ -13,6 +13,7 @@ import ImportCsvModal from './ImportCsvModal'
 import styles from './Nutrition.module.css'
 import IngredientsTable from './IngredientsTable'
 import FoodsTable from './FoodsTable'
+import LogTable from './LogTable'
 
 type Tab = 'log' | 'library'
 type Modal = null | 'food' | 'ingredient' | 'logEntry' | 'import'
@@ -105,6 +106,7 @@ export default function Nutrition() {
   const [modal, setModal] = useState<Modal>(null)
   const [editEntry, setEditEntry] = useState<LogEntry | null>(null)
   const [highlightFood, setHighlightFood] = useState<string | null>(null)
+  const [logView, setLogView] = useState<'timeline' | 'table'>('timeline')
   const [error, setError] = useState('')
 
   async function load() {
@@ -150,7 +152,15 @@ export default function Nutrition() {
           <div className={styles.actions}>
             <button className={styles.actionBtn} onClick={() => { setEditEntry(null); setModal('logEntry') }}>+ Log entry</button>
           </div>
-          {log.length === 0 ? (
+          <div className={styles.subToggle}>
+            <button className={`${styles.subBtn} ${logView === 'timeline' ? styles.subBtnActive : ''}`}
+              onClick={() => setLogView('timeline')}>Timeline</button>
+            <button className={`${styles.subBtn} ${logView === 'table' ? styles.subBtnActive : ''}`}
+              onClick={() => setLogView('table')}>Table</button>
+          </div>
+          {logView === 'table' ? (
+            <LogTable log={log} foods={foods} onSaved={load} />
+          ) : log.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>🥗</div>
               <h2>Nothing logged yet</h2>

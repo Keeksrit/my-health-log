@@ -4,7 +4,13 @@ export function rowsEqual<T extends Record<string, unknown>>(a: T, b: T): boolea
   const ak = Object.keys(a)
   const bk = Object.keys(b)
   if (ak.length !== bk.length) return false
-  return ak.every(k => a[k] === b[k])
+  return ak.every(k => {
+    const av = a[k], bv = b[k]
+    if (Array.isArray(av) && Array.isArray(bv)) {
+      return av.length === bv.length && av.every((el, i) => el === bv[i])
+    }
+    return av === bv
+  })
 }
 
 export function computeDirty<T extends { id: string }>(source: T[], working: T[]): T[] {

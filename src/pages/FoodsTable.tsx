@@ -104,7 +104,7 @@ function IngredientCell(
   { ids, all, onChange }: { ids: string[]; all: Ingredient[]; onChange: (ids: string[]) => void }
 ) {
   const [query, setQuery] = useState('')
-  const byId = new Map(all.map(i => [i.id, i]))
+  const byId = useMemo(() => new Map(all.map(i => [i.id, i])), [all])
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return []

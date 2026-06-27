@@ -129,6 +129,23 @@ export async function getOrCreateIngredientByName(name: string): Promise<Ingredi
   }
 }
 
+export async function updateIngredient(
+  id: string, input: { name: string; type: string | null }
+): Promise<void> {
+  const { error } = await db.from('nutrition_ingredients').update(input).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteIngredient(id: string): Promise<void> {
+  const { error } = await db.from('nutrition_ingredients').delete().eq('id', id)
+  if (error) {
+    if (error.code === '23503') {
+      throw new Error('That ingredient is still used by a food. Remove it from those foods first.')
+    }
+    throw error
+  }
+}
+
 // ── Foods ──────────────────────────────────────────────
 export async function fetchFoodsWithIngredients(): Promise<Food[]> {
   const { data, error } = await db
@@ -190,6 +207,39 @@ export async function getOrCreateFoodByName(name: string): Promise<Food> {
   }
 }
 
+export async function updateFood(id: string, input: { name: string }): Promise<void> {
+  const { error } = await db.from('nutrition_foods').update(input).eq('id', id)
+  if (error) throw error
+}
+
+export async function setFoodIngredients(foodId: string, ingredientIds: string[]): Promise<void> {
+  const { data, error } = await db
+    .from('nutrition_food_ingredients')
+    .select('ingredient_id')
+    .eq('food_id', foodId)
+  if (error) throw error
+  const current = (data ?? []).map((r: any) => r.ingredient_id as string)
+  const { toAdd, toRemove } = diffIngredientLinks(current, ingredientIds)
+  if (toRemove.length) {
+    const { error: delErr } = await db
+      .from('nutrition_food_ingredients')
+      .delete()
+      .eq('food_id', foodId)
+      .in('ingredient_id', toRemove)
+    if (delErr) throw delErr
+  }
+  if (toAdd.length) {
+    const links = toAdd.map(id => ({ food_id: foodId, ingredient_id: id }))
+    const { error: insErr } = await db.from('nutrition_food_ingredients').insert(links)
+    if (insErr) throw insErr
+  }
+}
+
+export async function deleteFood(id: string): Promise<void> {
+  const { error } = await db.from('nutrition_foods').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ── Consumption log ────────────────────────────────────
 export async function fetchLog(): Promise<LogEntry[]> {
   const { data, error } = await db
@@ -226,4 +276,13 @@ export async function updateLogEntry(
 export async function deleteLogEntry(id: string): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').delete().eq('id', id)
   if (error) throw error
+}
+
+export async function updateLogEntries(
+  rows: { id: string; food_id: string; amount: number | null; unit: string | null; type: string | null; eaten_at: string }[]
+): Promise<void> {
+  for (const r of rows) {
+    const { id, ...input } = r
+    await updateLogEntry(id, input)
+  }
 }

@@ -19,9 +19,9 @@ export interface LogEntry {
   food_id: string
   amount: number | null
   unit: string | null
+  type: string | null
   eaten_at: string
   created_at: string
-  // joined
   food?: Food
 }
 
@@ -39,3 +39,5 @@ export const INGREDIENT_TYPES = [
 export const FOOD_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Drink'] as const
 
 export const LOG_UNITS = ['g', 'ml', 'serving', 'piece'] as const
+
+export const LOG_TYPES = ['salty snack', 'sweet snack', 'drink', 'main', 'sports', 'fermented'] as const

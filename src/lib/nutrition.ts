@@ -53,6 +53,31 @@ export function distinctIngredientTypes(ingredients: Ingredient[]): string[] {
   return INGREDIENT_TYPES.filter(t => present.has(t))
 }
 
+export function diffIngredientLinks(
+  current: string[], next: string[]
+): { toAdd: string[]; toRemove: string[] } {
+  const cur = new Set(current)
+  const nxt = new Set(next)
+  return {
+    toAdd: next.filter(id => !cur.has(id)),
+    toRemove: current.filter(id => !nxt.has(id)),
+  }
+}
+
+function pad2(n: number): string { return String(n).padStart(2, '0') }
+
+export function splitDateTime(iso: string): { date: string; time: string } {
+  const d = new Date(iso)
+  return {
+    date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+    time: `${pad2(d.getHours())}:${pad2(d.getMinutes())}`,
+  }
+}
+
+export function combineDateTime(date: string, time: string): string {
+  return new Date(`${date}T${time}`).toISOString()
+}
+
 // ── Ingredients ────────────────────────────────────────
 export async function fetchIngredients(): Promise<Ingredient[]> {
   const { data, error } = await db
@@ -176,14 +201,14 @@ export async function fetchLog(): Promise<LogEntry[]> {
 }
 
 export async function insertLogEntry(
-  input: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }
+  input: { food_id: string; amount: number | null; unit: string | null; type?: string | null; eaten_at: string }
 ): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').insert(input)
   if (error) throw error
 }
 
 export async function insertLogEntries(
-  entries: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }[]
+  entries: { food_id: string; amount: number | null; unit: string | null; type?: string | null; eaten_at: string }[]
 ): Promise<void> {
   if (!entries.length) return
   const { error } = await db.from('nutrition_consumption_log').insert(entries)
@@ -192,7 +217,7 @@ export async function insertLogEntries(
 
 export async function updateLogEntry(
   id: string,
-  input: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }
+  input: { food_id: string; amount: number | null; unit: string | null; type?: string | null; eaten_at: string }
 ): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').update(input).eq('id', id)
   if (error) throw error

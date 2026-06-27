@@ -30,6 +30,7 @@ create table if not exists health.nutrition_consumption_log (
   food_id     uuid not null references health.nutrition_foods(id) on delete restrict,
   amount      numeric,
   unit        text,
+  type        text,
   eaten_at    timestamptz not null,
   created_at  timestamptz not null default now()
 );
@@ -47,3 +48,8 @@ grant select, insert, update, delete on
   health.nutrition_consumption_log
 to anon, authenticated;
 -- No sequence grants needed: primary keys use gen_random_uuid(), not serial.
+
+-- Migration (2026-06-27): relocate `type` from foods to the log.
+-- Run once on an existing database:
+--   alter table health.nutrition_consumption_log add column if not exists type text;
+--   alter table health.nutrition_foods drop column if exists type;

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Food, Ingredient, LogEntry } from '../types/nutrition'
-import { INGREDIENT_TYPES } from '../types/nutrition'
+import { INGREDIENT_TYPES, LOG_TYPES } from '../types/nutrition'
 
 const db = createClient(
   import.meta.env.VITE_SUPABASE_URL as string,
@@ -9,6 +9,15 @@ const db = createClient(
 )
 
 // ── Pure helpers ───────────────────────────────────────
+export function validateLogType(raw: string): string | null {
+  const v = raw.trim().toLowerCase()
+  if (!v) return null
+  if (!(LOG_TYPES as readonly string[]).includes(v)) {
+    throw new Error(`Unknown type "${raw}". Use one of: ${LOG_TYPES.join(', ')}.`)
+  }
+  return v
+}
+
 export function matchFoodByIngredientSet(foods: Food[], ingredientIds: string[]): Food | null {
   const target = new Set(ingredientIds)
   for (const f of foods) {
@@ -51,6 +60,31 @@ export function parseCsv(text: string): string[][] {
 export function distinctIngredientTypes(ingredients: Ingredient[]): string[] {
   const present = new Set(ingredients.map(i => i.type).filter((t): t is string => t != null))
   return INGREDIENT_TYPES.filter(t => present.has(t))
+}
+
+export function diffIngredientLinks(
+  current: string[], next: string[]
+): { toAdd: string[]; toRemove: string[] } {
+  const cur = new Set(current)
+  const nxt = new Set(next)
+  return {
+    toAdd: next.filter(id => !cur.has(id)),
+    toRemove: current.filter(id => !nxt.has(id)),
+  }
+}
+
+function pad2(n: number): string { return String(n).padStart(2, '0') }
+
+export function splitDateTime(iso: string): { date: string; time: string } {
+  const d = new Date(iso)
+  return {
+    date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+    time: `${pad2(d.getHours())}:${pad2(d.getMinutes())}`,
+  }
+}
+
+export function combineDateTime(date: string, time: string): string {
+  return new Date(`${date}T${time}`).toISOString()
 }
 
 // ── Ingredients ────────────────────────────────────────
@@ -104,6 +138,23 @@ export async function getOrCreateIngredientByName(name: string): Promise<Ingredi
   }
 }
 
+export async function updateIngredient(
+  id: string, input: { name: string; type: string | null }
+): Promise<void> {
+  const { error } = await db.from('nutrition_ingredients').update(input).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteIngredient(id: string): Promise<void> {
+  const { error } = await db.from('nutrition_ingredients').delete().eq('id', id)
+  if (error) {
+    if (error.code === '23503') {
+      throw new Error('That ingredient is still used by a food. Remove it from those foods first.')
+    }
+    throw error
+  }
+}
+
 // ── Foods ──────────────────────────────────────────────
 export async function fetchFoodsWithIngredients(): Promise<Food[]> {
   const { data, error } = await db
@@ -114,7 +165,6 @@ export async function fetchFoodsWithIngredients(): Promise<Food[]> {
   return (data ?? []).map((row: any): Food => ({
     id: row.id,
     name: row.name,
-    type: row.type,
     created_at: row.created_at,
     ingredients: (row.nutrition_food_ingredients ?? [])
       .map((link: any) => link.nutrition_ingredients as Ingredient)
@@ -123,7 +173,7 @@ export async function fetchFoodsWithIngredients(): Promise<Food[]> {
 }
 
 export async function insertFood(
-  input: { name: string; type: string | null },
+  input: { name: string },
   ingredientIds: string[]
 ): Promise<Food> {
   const { data, error } = await db
@@ -150,7 +200,7 @@ export async function getOrCreateFoodByName(name: string): Promise<Food> {
   if (error) throw error
   if (data) return data as Food
   try {
-    return await insertFood({ name, type: null }, [])
+    return await insertFood({ name }, [])
   } catch (e: any) {
     if (e?.code === '23505') {
       const { data: existing, error: refErr } = await db
@@ -165,6 +215,39 @@ export async function getOrCreateFoodByName(name: string): Promise<Food> {
   }
 }
 
+export async function updateFood(id: string, input: { name: string }): Promise<void> {
+  const { error } = await db.from('nutrition_foods').update(input).eq('id', id)
+  if (error) throw error
+}
+
+export async function setFoodIngredients(foodId: string, ingredientIds: string[]): Promise<void> {
+  const { data, error } = await db
+    .from('nutrition_food_ingredients')
+    .select('ingredient_id')
+    .eq('food_id', foodId)
+  if (error) throw error
+  const current = (data ?? []).map((r: any) => r.ingredient_id as string)
+  const { toAdd, toRemove } = diffIngredientLinks(current, ingredientIds)
+  if (toRemove.length) {
+    const { error: delErr } = await db
+      .from('nutrition_food_ingredients')
+      .delete()
+      .eq('food_id', foodId)
+      .in('ingredient_id', toRemove)
+    if (delErr) throw delErr
+  }
+  if (toAdd.length) {
+    const links = toAdd.map(id => ({ food_id: foodId, ingredient_id: id }))
+    const { error: insErr } = await db.from('nutrition_food_ingredients').insert(links)
+    if (insErr) throw insErr
+  }
+}
+
+export async function deleteFood(id: string): Promise<void> {
+  const { error } = await db.from('nutrition_foods').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ── Consumption log ────────────────────────────────────
 export async function fetchLog(): Promise<LogEntry[]> {
   const { data, error } = await db
@@ -176,14 +259,14 @@ export async function fetchLog(): Promise<LogEntry[]> {
 }
 
 export async function insertLogEntry(
-  input: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }
+  input: { food_id: string; amount: number | null; unit: string | null; type?: string | null; eaten_at: string }
 ): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').insert(input)
   if (error) throw error
 }
 
 export async function insertLogEntries(
-  entries: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }[]
+  entries: { food_id: string; amount: number | null; unit: string | null; type?: string | null; eaten_at: string }[]
 ): Promise<void> {
   if (!entries.length) return
   const { error } = await db.from('nutrition_consumption_log').insert(entries)
@@ -192,7 +275,7 @@ export async function insertLogEntries(
 
 export async function updateLogEntry(
   id: string,
-  input: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }
+  input: { food_id: string; amount: number | null; unit: string | null; type?: string | null; eaten_at: string }
 ): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').update(input).eq('id', id)
   if (error) throw error
@@ -201,4 +284,13 @@ export async function updateLogEntry(
 export async function deleteLogEntry(id: string): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').delete().eq('id', id)
   if (error) throw error
+}
+
+export async function updateLogEntries(
+  rows: { id: string; food_id: string; amount: number | null; unit: string | null; type: string | null; eaten_at: string }[]
+): Promise<void> {
+  for (const r of rows) {
+    const { id, ...input } = r
+    await updateLogEntry(id, input)
+  }
 }

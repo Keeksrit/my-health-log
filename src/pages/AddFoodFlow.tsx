@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Food, Ingredient } from '../types/nutrition'
-import { FOOD_TYPES } from '../types/nutrition'
 import { fetchIngredients, insertFood, matchFoodByIngredientSet } from '../lib/nutrition'
 import AddIngredientModal from './AddIngredientModal'
 import modalStyles from './Modal.module.css'
@@ -11,15 +10,13 @@ interface Props {
   foods: Food[]
   onClose: () => void
   onSaved: () => void
-  onOpenFood: (food: Food) => void
 }
 
-export default function AddFoodFlow({ foods, onClose, onSaved, onOpenFood }: Props) {
+export default function AddFoodFlow({ foods, onClose, onSaved }: Props) {
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>([])
   const [picked, setPicked] = useState<Ingredient[]>([])
   const [query, setQuery] = useState('')
   const [name, setName] = useState('')
-  const [type, setType] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
@@ -60,7 +57,7 @@ export default function AddFoodFlow({ foods, onClose, onSaved, onOpenFood }: Pro
     setSaving(true)
     setError('')
     try {
-      await insertFood({ name: name.trim(), type: type || null }, pickedIds)
+      await insertFood({ name: name.trim() }, pickedIds)
       onSaved()
     } catch (e: any) {
       if (e?.code === '23505') setError(`A food named "${name.trim()}" already exists.`)
@@ -114,9 +111,6 @@ export default function AddFoodFlow({ foods, onClose, onSaved, onOpenFood }: Pro
         {match && (
           <div className={styles.matchBanner}>
             This is <strong>{match.name}</strong> — a food with exactly these ingredients already exists.
-            <div>
-              <button className={styles.openMatchBtn} onClick={() => onOpenFood(match)}>Open it instead</button>
-            </div>
           </div>
         )}
 
@@ -128,12 +122,6 @@ export default function AddFoodFlow({ foods, onClose, onSaved, onOpenFood }: Pro
           onChange={e => setName(e.target.value)}
           placeholder="e.g. Pepperoni Pasta"
         />
-
-        <label className={formStyles.label}>MEAL TYPE <span className={formStyles.optional}>(optional)</span></label>
-        <select className={formStyles.input} value={type} onChange={e => setType(e.target.value)}>
-          <option value="">— none —</option>
-          {FOOD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
 
         {error && <p className={modalStyles.desc} style={{ color: 'var(--danger, #B83A3A)' }}>{error}</p>}
 

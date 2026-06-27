@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Food, LogEntry } from '../types/nutrition'
-import { LOG_UNITS } from '../types/nutrition'
+import { LOG_UNITS, LOG_TYPES } from '../types/nutrition'
 import { insertLogEntries, updateLogEntry, getOrCreateFoodByName } from '../lib/nutrition'
 import modalStyles from './Modal.module.css'
 import formStyles from './AddMedicationFlow.module.css'
@@ -46,6 +46,7 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
     return []
   })
   const [query, setQuery] = useState('')
+  const [type, setType] = useState<string>(entry?.type ?? '')
   const [eatenAt, setEatenAt] = useState<Date>(() => snap15(entry ? new Date(entry.eaten_at) : new Date()))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -112,7 +113,7 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
     const eaten_at = eatenAt.toISOString()
     const rows = picked.map(r => {
       const amt = r.amount.trim() ? Number(r.amount) : null
-      return { food_id: r.food.id, amount: amt, unit: amt != null ? r.unit : null, eaten_at }
+      return { food_id: r.food.id, amount: amt, unit: amt != null ? r.unit : null, type: type || null, eaten_at }
     })
     try {
       if (entry) await updateLogEntry(entry.id, rows[0])
@@ -175,7 +176,7 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
           <div className={styles.suggestions}>
             {suggestions.map(f => (
               <button key={f.id} className={styles.suggestion} onClick={() => selectFood(f)}>
-                {f.name}{f.type ? ` · ${f.type}` : ''}
+                {f.name}
               </button>
             ))}
             {!exactExists && (
@@ -196,6 +197,12 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
             <button className={styles.nudgeBtn} onClick={() => nudge(15)}>+ 15m</button>
           </div>
         </div>
+
+        <label className={formStyles.label}>TYPE <span className={formStyles.optional}>(optional)</span></label>
+        <select className={formStyles.input} value={type} onChange={e => setType(e.target.value)}>
+          <option value="">— none —</option>
+          {LOG_TYPES.map(x => <option key={x} value={x}>{x}</option>)}
+        </select>
 
         {error && <p className={modalStyles.desc} style={{ color: 'var(--danger, #B83A3A)' }}>{error}</p>}
 

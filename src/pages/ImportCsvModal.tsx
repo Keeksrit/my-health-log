@@ -7,6 +7,7 @@ import {
   insertFood,
   getOrCreateFoodByName,
   insertLogEntry,
+  validateLogType,
 } from '../lib/nutrition'
 import modalStyles from './Modal.module.css'
 import formStyles from './AddMedicationFlow.module.css'
@@ -74,7 +75,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
         }
       } else if (format === 'foods') {
         for (const r of dropHeader(rows, 'name')) {
-          const [name, type, ingredientsCell] = r
+          const [name, ingredientsCell] = r
           if (!name?.trim()) { sum.errors.push(`Empty name in row: ${r.join(',')}`); continue }
           try {
             const ingNames = (ingredientsCell ?? '')
@@ -85,7 +86,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
               if (existing.type === null) sum.stubs.push(`ingredient: ${existing.name}`)
               ids.push(existing.id)
             }
-            await insertFood({ name: name.trim(), type: type?.trim() || null }, ids)
+            await insertFood({ name: name.trim() }, ids)
             sum.inserted++
           } catch (e: any) {
             sum.errors.push(`Could not import food "${name.trim()}": ${e?.message ?? 'unknown error'}`)
@@ -93,8 +94,11 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
         }
       } else {
         for (const r of dropHeader(rows, 'food')) {
-          const [foodName, amount, unit, eatenAt] = r
+          const [foodName, typeRaw, amount, unit, eatenAt] = r
           if (!foodName?.trim()) { sum.errors.push(`Empty food in row: ${r.join(',')}`); continue }
+          let logType: string | null = null
+          try { logType = validateLogType(typeRaw ?? '') }
+          catch (e: any) { sum.errors.push(`${e?.message ?? 'Bad type'} (row: ${r.join(',')})`); continue }
           const amountRaw = (amount ?? '').trim()
           let amt: number | null = null
           let u: string | null = null
@@ -109,7 +113,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
           try {
             const food = await getOrCreateFoodByName(foodName.trim())
             if (!food.ingredients?.length) sum.stubs.push(`food: ${food.name}`)
-            await insertLogEntry({ food_id: food.id, amount: amt, unit: u, eaten_at: when.toISOString() })
+            await insertLogEntry({ food_id: food.id, amount: amt, unit: u, type: logType, eaten_at: when.toISOString() })
             sum.inserted++
           } catch (e: any) {
             sum.errors.push(`Could not import log for "${foodName.trim()}": ${e?.message ?? 'unknown error'}`)
@@ -156,8 +160,8 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
             <label className={formStyles.label}>FORMAT</label>
             <select className={formStyles.input} value={format} onChange={e => { setFormat(e.target.value as Format); setRows(null) }}>
               <option value="ingredients">Ingredients — name, type</option>
-              <option value="foods">Foods — name, type, ingredients</option>
-              <option value="log">Log — food, amount, unit, eaten_at</option>
+              <option value="foods">Foods — name, ingredients</option>
+              <option value="log">Log — food, type, amount, unit, eaten_at</option>
             </select>
 
             <label className={formStyles.label}>UPLOAD .CSV</label>

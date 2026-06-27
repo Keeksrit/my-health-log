@@ -1,12 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { matchFoodByIngredientSet, parseCsv, distinctIngredientTypes } from './nutrition'
+import {
+  matchFoodByIngredientSet, parseCsv, distinctIngredientTypes,
+  diffIngredientLinks, splitDateTime, combineDateTime, validateLogType,
+} from './nutrition'
 import type { Food, Ingredient } from '../types/nutrition'
 
 function ing(id: string, name: string, type: string | null = null): Ingredient {
   return { id, name, type, created_at: '' }
 }
 function food(id: string, name: string, ingredients: Ingredient[]): Food {
-  return { id, name, type: null, created_at: '', ingredients }
+  return { id, name, created_at: '', ingredients }
 }
 
 describe('matchFoodByIngredientSet', () => {
@@ -67,5 +70,45 @@ describe('distinctIngredientTypes', () => {
 
   it('returns an empty array when all types are null', () => {
     expect(distinctIngredientTypes([ing('1', 'x', null)])).toEqual([])
+  })
+})
+
+describe('diffIngredientLinks', () => {
+  it('reports added and removed ids, ignoring unchanged', () => {
+    expect(diffIngredientLinks(['a', 'b', 'c'], ['b', 'c', 'd'])).toEqual({
+      toAdd: ['d'], toRemove: ['a'],
+    })
+  })
+  it('is empty when the sets match regardless of order', () => {
+    expect(diffIngredientLinks(['a', 'b'], ['b', 'a'])).toEqual({ toAdd: [], toRemove: [] })
+  })
+  it('handles empty current/next', () => {
+    expect(diffIngredientLinks([], ['a'])).toEqual({ toAdd: ['a'], toRemove: [] })
+    expect(diffIngredientLinks(['a'], [])).toEqual({ toAdd: [], toRemove: ['a'] })
+  })
+})
+
+describe('validateLogType', () => {
+  it('accepts a known type case-insensitively, normalised to lowercase', () => {
+    expect(validateLogType('Main')).toBe('main')
+    expect(validateLogType('salty snack')).toBe('salty snack')
+  })
+  it('returns null for blank input', () => {
+    expect(validateLogType('')).toBeNull()
+    expect(validateLogType('   ')).toBeNull()
+  })
+  it('throws for an unknown type', () => {
+    expect(() => validateLogType('brunch')).toThrow()
+  })
+})
+
+describe('split/combineDateTime', () => {
+  it('round-trips a local wall-clock time', () => {
+    const iso = combineDateTime('2026-06-27', '08:30')
+    expect(splitDateTime(iso)).toEqual({ date: '2026-06-27', time: '08:30' })
+  })
+  it('splitDateTime zero-pads month, day, hour, minute', () => {
+    const iso = combineDateTime('2026-01-05', '07:05')
+    expect(splitDateTime(iso)).toEqual({ date: '2026-01-05', time: '07:05' })
   })
 })

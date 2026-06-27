@@ -109,6 +109,9 @@ export default function LogTable({ log, foods, onSaved }: Props) {
                         food_id: e.target.value,
                         foodName: nameById.get(e.target.value) ?? '',
                       })}>
+                      {!foods.some(f => f.id === r.food_id) && (
+                        <option value={r.food_id}>{r.foodName}</option>
+                      )}
                       {foods.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                     </select>
                   : r.foodName}</td>

@@ -117,7 +117,7 @@ function IngredientCell(
         {ids.map(id => (
           <span key={id} className={ft.chip}>
             {byId.get(id)?.name ?? '?'}
-            <button className={ft.chipRemove} onClick={() => onChange(ids.filter(x => x !== id))}>×</button>
+            <button className={ft.chipRemove} aria-label="Remove ingredient" onClick={() => onChange(ids.filter(x => x !== id))}>×</button>
           </span>
         ))}
       </div>

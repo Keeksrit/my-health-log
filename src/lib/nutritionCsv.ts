@@ -87,6 +87,19 @@ export function parseLogRows(rows: string[][]): LogCsvRow[] {
   }))
 }
 
+// ── Validation ─────────────────────────────────────────
+export function normalizeLogAmountUnit(
+  amountRaw: string, unitRaw: string, allowedUnits: Set<string>
+): { amount: number | null; unit: string | null } {
+  const a = amountRaw.trim()
+  if (!a) return { amount: null, unit: null }
+  const amount = Number(a)
+  if (!(amount > 0)) throw new Error(`Bad amount "${amountRaw}"`)
+  const unit = unitRaw.trim()
+  if (!allowedUnits.has(unit)) throw new Error(`Bad unit "${unitRaw}"`)
+  return { amount, unit }
+}
+
 // ── Sync plan ──────────────────────────────────────────
 export function computeSyncPlan<T extends { id: string }>(
   fileRows: T[], dbIds: string[], mode: SyncMode

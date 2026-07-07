@@ -5,6 +5,7 @@ import {
   parseFoodRows,
   parseLogRows,
   computeSyncPlan,
+  normalizeLogAmountUnit,
 } from './nutritionCsv'
 import { parseCsv } from './nutrition'
 
@@ -77,5 +78,25 @@ describe('computeSyncPlan', () => {
     expect(plan.updates).toEqual([])
     expect(plan.deletes).toEqual([])
     expect(plan.unknownIds).toEqual([])
+  })
+})
+
+describe('normalizeLogAmountUnit', () => {
+  const allowed = new Set(['g', 'serving'])
+
+  it('returns null amount and unit when amount is blank', () => {
+    expect(normalizeLogAmountUnit('', 'g', allowed)).toEqual({ amount: null, unit: null })
+  })
+
+  it('returns amount and unit when valid', () => {
+    expect(normalizeLogAmountUnit('2', 'serving', allowed)).toEqual({ amount: 2, unit: 'serving' })
+  })
+
+  it('throws on a non-positive amount', () => {
+    expect(() => normalizeLogAmountUnit('0', 'g', allowed)).toThrow('amount')
+  })
+
+  it('throws on an unknown unit', () => {
+    expect(() => normalizeLogAmountUnit('2', 'cups', allowed)).toThrow('unit')
   })
 })

@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Food, Ingredient, LogEntry } from '../types/nutrition'
 import { INGREDIENT_TYPES } from '../types/nutrition'
+import type {
+  IngredientCsvRow, FoodCsvRow, LogCsvRow, SyncMode,
+} from './nutritionCsv'
+import { computeSyncPlan, normalizeLogAmountUnit } from './nutritionCsv'
 
 const db = createClient(
   import.meta.env.VITE_SUPABASE_URL as string,
@@ -287,4 +291,111 @@ export async function updateLogEntries(
     const { id, ...input } = r
     await updateLogEntry(id, input)
   }
+}
+
+// ── CSV import / sync ──────────────────────────────────
+export interface ImportSummary {
+  inserted: number
+  updated: number
+  deleted: number
+  skipped: string[]   // bad rows, unknown ids
+  blocked: string[]   // FK-blocked deletes
+  stubs: string[]     // auto-created foods/ingredients
+}
+
+function emptySummary(): ImportSummary {
+  return { inserted: 0, updated: 0, deleted: 0, skipped: [], blocked: [], stubs: [] }
+}
+
+export async function syncIngredients(rows: IngredientCsvRow[], mode: SyncMode): Promise<ImportSummary> {
+  const sum = emptySummary()
+  const existing = await fetchIngredients()
+  const plan = computeSyncPlan(rows, existing.map(i => i.id), mode)
+  for (const r of plan.unknownIds) sum.skipped.push(`ingredient row references unknown id "${r.id}"`)
+  for (const r of plan.inserts) {
+    if (!r.name) { sum.skipped.push('ingredient with empty name'); continue }
+    try { await insertIngredient({ name: r.name, type: r.type }); sum.inserted++ }
+    catch (e: any) { sum.skipped.push(`insert ingredient "${r.name}": ${e?.message ?? 'error'}`) }
+  }
+  for (const r of plan.updates) {
+    try { await updateIngredient(r.id, { name: r.name, type: r.type }); sum.updated++ }
+    catch (e: any) { sum.skipped.push(`update ingredient "${r.name}": ${e?.message ?? 'error'}`) }
+  }
+  for (const id of plan.deletes) {
+    try { await deleteIngredient(id); sum.deleted++ }
+    catch (e: any) { sum.blocked.push(`ingredient ${id}: ${e?.message ?? 'still referenced'}`) }
+  }
+  return sum
+}
+
+export async function syncFoods(rows: FoodCsvRow[], mode: SyncMode): Promise<ImportSummary> {
+  const sum = emptySummary()
+  const existing = await fetchFoodsWithIngredients()
+  const plan = computeSyncPlan(rows, existing.map(f => f.id), mode)
+  for (const r of plan.unknownIds) sum.skipped.push(`food row references unknown id "${r.id}"`)
+
+  async function resolveIngredientIds(names: string[]): Promise<string[]> {
+    const ids: string[] = []
+    for (const n of names) {
+      const ing = await getOrCreateIngredientByName(n)
+      if (ing.type === null) sum.stubs.push(`ingredient: ${ing.name}`)
+      ids.push(ing.id)
+    }
+    return ids
+  }
+
+  for (const r of plan.inserts) {
+    if (!r.name) { sum.skipped.push('food with empty name'); continue }
+    try {
+      const ids = await resolveIngredientIds(r.ingredientNames)
+      await insertFood({ name: r.name, type: r.type }, ids)
+      sum.inserted++
+    } catch (e: any) { sum.skipped.push(`insert food "${r.name}": ${e?.message ?? 'error'}`) }
+  }
+  for (const r of plan.updates) {
+    try {
+      const ids = await resolveIngredientIds(r.ingredientNames)
+      await updateFood(r.id, { name: r.name, type: r.type })
+      await setFoodIngredients(r.id, ids)
+      sum.updated++
+    } catch (e: any) { sum.skipped.push(`update food "${r.name}": ${e?.message ?? 'error'}`) }
+  }
+  for (const id of plan.deletes) {
+    try { await deleteFood(id); sum.deleted++ }
+    catch (e: any) { sum.blocked.push(`food ${id}: ${e?.message ?? 'still referenced by the log'}`) }
+  }
+  return sum
+}
+
+export async function syncLog(
+  rows: LogCsvRow[], mode: SyncMode, allowedUnits: Set<string>
+): Promise<ImportSummary> {
+  const sum = emptySummary()
+  const existing = await fetchLog()
+  const plan = computeSyncPlan(rows, existing.map(e => e.id), mode)
+  for (const r of plan.unknownIds) sum.skipped.push(`log row references unknown id "${r.id}"`)
+
+  async function build(r: LogCsvRow): Promise<{ food_id: string; amount: number | null; unit: string | null; eaten_at: string }> {
+    if (!r.food) throw new Error('empty food name')
+    const { amount, unit } = normalizeLogAmountUnit(r.amount, r.unit, allowedUnits)
+    const when = r.eatenAt ? new Date(r.eatenAt) : new Date()
+    if (isNaN(when.getTime())) throw new Error(`bad date "${r.eatenAt}"`)
+    const food = await getOrCreateFoodByName(r.food)
+    if (!food.ingredients?.length) sum.stubs.push(`food: ${food.name}`)
+    return { food_id: food.id, amount, unit, eaten_at: when.toISOString() }
+  }
+
+  for (const r of plan.inserts) {
+    try { await insertLogEntry(await build(r)); sum.inserted++ }
+    catch (e: any) { sum.skipped.push(`insert log "${r.food}": ${e?.message ?? 'error'}`) }
+  }
+  for (const r of plan.updates) {
+    try { await updateLogEntry(r.id, await build(r)); sum.updated++ }
+    catch (e: any) { sum.skipped.push(`update log "${r.food}": ${e?.message ?? 'error'}`) }
+  }
+  for (const id of plan.deletes) {
+    try { await deleteLogEntry(id); sum.deleted++ }
+    catch (e: any) { sum.blocked.push(`log ${id}: ${e?.message ?? 'error'}`) }
+  }
+  return sum
 }

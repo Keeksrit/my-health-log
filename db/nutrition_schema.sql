@@ -52,3 +52,28 @@ to anon, authenticated;
 -- Run once on an existing database:
 --   alter table health.nutrition_consumption_log add column if not exists type text;
 --   alter table health.nutrition_foods drop column if exists type;
+
+-- RLS: require an authenticated JWT for the nutrition tables (mirrors the
+-- health-schema lockdown in migrations/2026-07-07-auth-rls.sql). The anon grants
+-- above remain but are blocked by these policies. Idempotent via drop-if-exists.
+-- For existing databases, use migrations/2026-07-07-auth-rls.sql (drops all prior policies by name).
+do $$
+declare tbl text;
+begin
+  for tbl in select unnest(array[
+    'nutrition_ingredients',
+    'nutrition_foods',
+    'nutrition_food_ingredients',
+    'nutrition_consumption_log'
+  ])
+  loop
+    execute format('alter table health.%I enable row level security;', tbl);
+    execute format('drop policy if exists "Authenticated only" on health.%I;', tbl);
+    execute format(
+      'create policy "Authenticated only" on health.%I '
+      'for all using (auth.role() = ''authenticated'') '
+      'with check (auth.role() = ''authenticated'');',
+      tbl
+    );
+  end loop;
+end $$;

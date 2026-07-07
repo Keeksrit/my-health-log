@@ -15,6 +15,9 @@ async function load(force = false): Promise<Unit[]> {
       inflight = null
       listeners.forEach(fn => fn(u))
       return u
+    }).catch(err => {
+      inflight = null
+      throw err
     })
   }
   return inflight

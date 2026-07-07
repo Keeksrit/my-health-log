@@ -40,7 +40,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const { units } = useUnits()
+  const { units, loading } = useUnits()
 
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -59,6 +59,10 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
 
   async function runImport() {
     if (!rows) return
+    if (loading || units.length === 0) {
+      setError('Units are still loading — try again in a moment.')
+      return
+    }
     setBusy(true)
     setError('')
     const sum: Summary = { inserted: 0, stubs: [], errors: [] }
@@ -196,8 +200,8 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
                     </tbody>
                   </table>
                 </div>
-                <button className={formStyles.nextBtn} disabled={busy} onClick={runImport}>
-                  {busy ? 'Importing…' : `Import ${rows.length} row(s)`}
+                <button className={formStyles.nextBtn} disabled={busy || loading} onClick={runImport}>
+                  {loading ? 'Loading units…' : busy ? 'Importing…' : `Import ${rows.length} row(s)`}
                 </button>
               </>
             ) : (

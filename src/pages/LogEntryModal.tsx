@@ -39,10 +39,11 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
   const editing = !!entry
 
   const [foodList, setFoodList] = useState<Food[]>(foods)
+  const { units } = useUnits()
   const [picked, setPicked] = useState<Row[]>(() => {
     if (entry) {
       const f = foods.find(x => x.id === entry.food_id) ?? entry.food
-      if (f) return [{ food: f, amount: entry.amount != null ? String(entry.amount) : '', unit: entry.unit ?? 'serving' }]
+      if (f) return [{ food: f, amount: entry.amount != null ? String(entry.amount) : '', unit: entry.unit ?? units[0]?.name ?? '' }]
     }
     return []
   })
@@ -51,7 +52,6 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
   const [eatenAt, setEatenAt] = useState<Date>(() => snap15(entry ? new Date(entry.eaten_at) : new Date()))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const { units } = useUnits()
 
   const pickedIds = picked.map(r => r.food.id)
 
@@ -66,9 +66,9 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
   function selectFood(food: Food) {
     setQuery('')
     if (editing) {
-      setPicked([{ food, amount: picked[0]?.amount ?? '', unit: picked[0]?.unit ?? 'serving' }])
+      setPicked([{ food, amount: picked[0]?.amount ?? '', unit: picked[0]?.unit ?? units[0]?.name ?? '' }])
     } else if (!pickedIds.includes(food.id)) {
-      setPicked([...picked, { food, amount: '', unit: 'serving' }])
+      setPicked([...picked, { food, amount: '', unit: units[0]?.name ?? '' }])
     }
   }
 

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import type { Food, LogEntry } from '../types/nutrition'
-import { LOG_TYPES } from '../types/nutrition'
 import { useUnits } from '../lib/useUnits'
 import { useEditableRows } from '../lib/useEditableRows'
 import { updateLogEntries, deleteLogEntry, splitDateTime, combineDateTime } from '../lib/nutrition'
@@ -16,7 +15,6 @@ interface LogRow {
   id: string
   date: string
   time: string
-  type: string | null
   food_id: string
   foodName: string
   amount: string
@@ -26,7 +24,7 @@ interface LogRow {
 function toRow(e: LogEntry, foodName: string): LogRow {
   const { date, time } = splitDateTime(e.eaten_at)
   return {
-    id: e.id, date, time, type: e.type, food_id: e.food_id, foodName,
+    id: e.id, date, time, food_id: e.food_id, foodName,
     amount: e.amount != null ? String(e.amount) : '',
     unit: e.unit ?? '',
   }
@@ -51,7 +49,7 @@ export default function LogTable({ log, foods, onSaved }: Props) {
         if (amt != null && !(amt > 0)) throw new Error(`Amount for ${r.foodName} must be positive.`)
         return {
           id: r.id, food_id: r.food_id, amount: amt,
-          unit: amt != null ? r.unit : null, type: r.type,
+          unit: amt != null ? r.unit : null,
           eaten_at: combineDateTime(r.date, r.time),
         }
       })
@@ -85,7 +83,7 @@ export default function LogTable({ log, foods, onSaved }: Props) {
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
-            <tr><th>Date</th><th>Time</th><th>Food type</th><th>Food name</th><th>Amount</th><th>Unit</th>{t.editing && <th />}</tr>
+            <tr><th>Date</th><th>Time</th><th>Food name</th><th>Amount</th><th>Unit</th>{t.editing && <th />}</tr>
           </thead>
           <tbody>
             {t.rows.map(r => (
@@ -98,13 +96,6 @@ export default function LogTable({ log, foods, onSaved }: Props) {
                   ? <input type="time" className={styles.cellInput} value={r.time}
                       onChange={e => t.setRow(r.id, { time: e.target.value })} />
                   : r.time}</td>
-                <td>{t.editing
-                  ? <select className={styles.cellSelect} value={r.type ?? ''}
-                      onChange={e => t.setRow(r.id, { type: e.target.value || null })}>
-                      <option value="">—</option>
-                      {LOG_TYPES.map(x => <option key={x} value={x}>{x}</option>)}
-                    </select>
-                  : (r.type ?? '—')}</td>
                 <td>{t.editing
                   ? <select className={styles.cellSelect} value={r.food_id}
                       onChange={e => t.setRow(r.id, {

@@ -3,6 +3,8 @@ import type { Food, LogEntry } from '../types/nutrition'
 import { useUnits } from '../lib/useUnits'
 import { useEditableRows } from '../lib/useEditableRows'
 import { updateLogEntries, deleteLogEntry, splitDateTime, combineDateTime } from '../lib/nutrition'
+import { logToCsv } from '../lib/nutritionCsv'
+import { downloadCsv } from '../lib/utils'
 import styles from './Nutrition.module.css'
 
 interface Props {
@@ -75,7 +77,10 @@ export default function LogTable({ log, foods, onSaved }: Props) {
               <button className={styles.tableBtn} disabled={saving} onClick={t.cancel}>Cancel</button>
             </>
           ) : (
-            log.length > 0 && <button className={styles.tableBtn} onClick={t.begin}>Edit</button>
+            <>
+              {log.length > 0 && <button className={styles.tableBtn} onClick={t.begin}>Edit</button>}
+              <button className={styles.tableBtn} onClick={() => downloadCsv('log.csv', logToCsv(log))}>⬇ Export</button>
+            </>
           )}
         </div>
       </div>

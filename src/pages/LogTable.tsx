@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Food, LogEntry } from '../types/nutrition'
-import { LOG_TYPES, LOG_UNITS } from '../types/nutrition'
+import { LOG_TYPES } from '../types/nutrition'
+import { useUnits } from '../lib/useUnits'
 import { useEditableRows } from '../lib/useEditableRows'
 import { updateLogEntries, deleteLogEntry, splitDateTime, combineDateTime } from '../lib/nutrition'
 import styles from './Nutrition.module.css'
@@ -39,6 +40,7 @@ export default function LogTable({ log, foods, onSaved }: Props) {
   const t = useEditableRows<LogRow>(source)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const { units } = useUnits()
 
   async function save() {
     setSaving(true); setError('')
@@ -123,7 +125,7 @@ export default function LogTable({ log, foods, onSaved }: Props) {
                   ? <select className={styles.cellSelect} value={r.unit}
                       onChange={e => t.setRow(r.id, { unit: e.target.value })}>
                       <option value="">—</option>
-                      {LOG_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                      {units.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                     </select>
                   : (r.unit || '—')}</td>
                 {t.editing && (

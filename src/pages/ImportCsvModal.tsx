@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LOG_UNITS } from '../types/nutrition'
+import { useUnits } from '../lib/useUnits'
 import {
   parseCsv,
   insertIngredient,
@@ -40,6 +40,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const { units, loading } = useUnits()
 
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -58,9 +59,14 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
 
   async function runImport() {
     if (!rows) return
+    if (loading || units.length === 0) {
+      setError('Units are still loading — try again in a moment.')
+      return
+    }
     setBusy(true)
     setError('')
     const sum: Summary = { inserted: 0, stubs: [], errors: [] }
+    const allowedUnits = new Set(units.map(u => u.name))
     try {
       if (format === 'ingredients') {
         for (const r of dropHeader(rows, 'name')) {
@@ -106,7 +112,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
             amt = Number(amountRaw)
             if (!(amt > 0)) { sum.errors.push(`Bad amount "${amount}" for ${foodName}`); continue }
             u = (unit ?? '').trim()
-            if (!LOG_UNITS.includes(u as any)) { sum.errors.push(`Bad unit "${unit}" for ${foodName}`); continue }
+            if (!allowedUnits.has(u)) { sum.errors.push(`Bad unit "${unit}" for ${foodName}`); continue }
           }
           const when = eatenAt?.trim() ? new Date(eatenAt.trim()) : new Date()
           if (isNaN(when.getTime())) { sum.errors.push(`Bad date "${eatenAt}" for ${foodName}`); continue }
@@ -194,8 +200,8 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
                     </tbody>
                   </table>
                 </div>
-                <button className={formStyles.nextBtn} disabled={busy} onClick={runImport}>
-                  {busy ? 'Importing…' : `Import ${rows.length} row(s)`}
+                <button className={formStyles.nextBtn} disabled={busy || loading} onClick={runImport}>
+                  {loading ? 'Loading units…' : busy ? 'Importing…' : `Import ${rows.length} row(s)`}
                 </button>
               </>
             ) : (

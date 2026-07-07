@@ -35,6 +35,4 @@ export const INGREDIENT_TYPES = [
   'Processed',
 ] as const
 
-export const LOG_UNITS = ['g', 'ml', 'serving', 'piece'] as const
-
 export const LOG_TYPES = ['salty snack', 'sweet snack', 'drink', 'main', 'sports', 'fermented'] as const

@@ -32,21 +32,34 @@ create policy nutrition_food_types_authenticated
   with check (auth.role() = 'authenticated');
 
 -- 3. Backfill each food's type from the most frequent non-null type across its log
---    entries, so existing categorization survives the column drop.
-update health.nutrition_foods f
-set type = sub.type
-from (
-  select distinct on (food_id) food_id, type
-  from (
-    select food_id, type, count(*) as n
-    from health.nutrition_consumption_log
-    where type is not null
-    group by food_id, type
-  ) counts
-  order by food_id, n desc, type
-) sub
-where sub.food_id = f.id
-  and f.type is null;
+--    entries, so existing categorization survives the column drop. Guarded so a
+--    re-run (after step 4 has already dropped the column) is a no-op.
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'health'
+      and table_name = 'nutrition_consumption_log'
+      and column_name = 'type'
+  ) then
+    update health.nutrition_foods f
+    set type = sub.type
+    from (
+      select distinct on (food_id) food_id, type
+      from (
+        select food_id, type, count(*) as n
+        from health.nutrition_consumption_log
+        where type is not null
+        group by food_id, type
+      ) counts
+      order by food_id, n desc, type
+    ) sub
+    where sub.food_id = f.id
+      and f.type is null;
+  end if;
+end
+$$;
 
 -- 4. Drop the log's type column.
 alter table health.nutrition_consumption_log drop column if exists type;

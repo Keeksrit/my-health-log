@@ -41,7 +41,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
 
   async function runImport() {
     if (!rows) return
-    if (loading || units.length === 0) {
+    if (format === 'log' && (loading || units.length === 0)) {
       setError('Units are still loading — try again in a moment.')
       return
     }

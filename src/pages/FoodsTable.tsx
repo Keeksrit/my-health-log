@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Food, Ingredient } from '../types/nutrition'
 import { useEditableRows } from '../lib/useEditableRows'
+import { useFoodTypes } from '../lib/useFoodTypes'
 import { updateFood, setFoodIngredients, deleteFood } from '../lib/nutrition'
 import styles from './Nutrition.module.css'
 import ft from './FoodsTable.module.css'
@@ -11,10 +12,10 @@ interface Props {
   onSaved: () => void
 }
 
-interface FoodRow { id: string; name: string; ingredientIds: string[] }
+interface FoodRow { id: string; name: string; type: string | null; ingredientIds: string[] }
 
 function toRow(f: Food): FoodRow {
-  return { id: f.id, name: f.name, ingredientIds: (f.ingredients ?? []).map(i => i.id) }
+  return { id: f.id, name: f.name, type: f.type, ingredientIds: (f.ingredients ?? []).map(i => i.id) }
 }
 
 export default function FoodsTable({ foods, allIngredients, onSaved }: Props) {
@@ -22,6 +23,7 @@ export default function FoodsTable({ foods, allIngredients, onSaved }: Props) {
   const t = useEditableRows<FoodRow>(source)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const { foodTypes } = useFoodTypes()
   const nameById = useMemo(
     () => new Map(allIngredients.map(i => [i.id, i.name])), [allIngredients])
 
@@ -30,7 +32,7 @@ export default function FoodsTable({ foods, allIngredients, onSaved }: Props) {
     try {
       for (const id of t.deletedIds) await deleteFood(id)
       for (const r of t.dirtyRows) {
-        await updateFood(r.id, { name: r.name.trim() })
+        await updateFood(r.id, { name: r.name.trim(), type: r.type })
         await setFoodIngredients(r.id, r.ingredientIds)
       }
       onSaved(); t.finish()
@@ -65,7 +67,7 @@ export default function FoodsTable({ foods, allIngredients, onSaved }: Props) {
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
-              <tr><th>Food name</th><th>Ingredients</th>{t.editing && <th />}</tr>
+              <tr><th>Food name</th><th>Type</th><th>Ingredients</th>{t.editing && <th />}</tr>
             </thead>
             <tbody>
               {t.rows.map(r => (
@@ -75,6 +77,15 @@ export default function FoodsTable({ foods, allIngredients, onSaved }: Props) {
                       ? <input className={styles.cellInput} value={r.name}
                           onChange={e => t.setRow(r.id, { name: e.target.value })} />
                       : r.name}
+                  </td>
+                  <td>
+                    {t.editing
+                      ? <select className={styles.cellSelect} value={r.type ?? ''}
+                          onChange={e => t.setRow(r.id, { type: e.target.value || null })}>
+                          <option value="">—</option>
+                          {foodTypes.map(x => <option key={x.id} value={x.name}>{x.name}</option>)}
+                        </select>
+                      : (r.type ?? '—')}
                   </td>
                   <td>
                     {t.editing

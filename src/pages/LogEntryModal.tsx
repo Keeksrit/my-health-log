@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Food, LogEntry } from '../types/nutrition'
-import { LOG_UNITS, LOG_TYPES } from '../types/nutrition'
+import { LOG_TYPES } from '../types/nutrition'
+import { useUnits } from '../lib/useUnits'
 import { insertLogEntries, updateLogEntry, getOrCreateFoodByName } from '../lib/nutrition'
 import modalStyles from './Modal.module.css'
 import formStyles from './AddMedicationFlow.module.css'
@@ -50,6 +51,7 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
   const [eatenAt, setEatenAt] = useState<Date>(() => snap15(entry ? new Date(entry.eaten_at) : new Date()))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const { units } = useUnits()
 
   const pickedIds = picked.map(r => r.food.id)
 
@@ -155,7 +157,7 @@ export default function LogEntryModal({ foods, entry, onClose, onSaved, onDelete
                   value={r.unit}
                   onChange={e => setRowUnit(r.food.id, e.target.value)}
                 >
-                  {LOG_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                  {units.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                 </select>
                 {!editing && (
                   <button className={styles.rowRemove} onClick={() => removeRow(r.food.id)}>×</button>

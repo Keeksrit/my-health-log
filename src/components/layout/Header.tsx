@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import styles from './Header.module.css'
 
@@ -13,9 +14,12 @@ export default function Header() {
           <h1 className={styles.title}>My Health Log</h1>
           <p className={styles.date}>{today}</p>
         </div>
-        <button className={styles.signout} onClick={() => supabase.auth.signOut()}>
-          Sign out
-        </button>
+        <div className={styles.actions}>
+          <Link className={styles.settings} to="/settings">Settings</Link>
+          <button className={styles.signout} onClick={() => supabase.auth.signOut()}>
+            Sign out
+          </button>
+        </div>
       </div>
     </header>
   )

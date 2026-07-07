@@ -1,14 +1,9 @@
 import { useState } from 'react'
 import { useUnits } from '../lib/useUnits'
+import { parseCsv, syncIngredients, syncFoods, syncLog, type ImportSummary } from '../lib/nutrition'
 import {
-  parseCsv,
-  insertIngredient,
-  getOrCreateIngredientByName,
-  insertFood,
-  getOrCreateFoodByName,
-  insertLogEntry,
-  validateLogType,
-} from '../lib/nutrition'
+  parseIngredientRows, parseFoodRows, parseLogRows, type SyncMode,
+} from '../lib/nutritionCsv'
 import modalStyles from './Modal.module.css'
 import formStyles from './AddMedicationFlow.module.css'
 
@@ -19,25 +14,12 @@ interface Props {
   onSaved: () => void
 }
 
-interface Summary {
-  inserted: number
-  stubs: string[]
-  errors: string[]
-}
-
-// Treat the first row as a header only if it looks like one (non-numeric first cell
-// matching a known column name). To stay lenient we simply drop a row whose first
-// cell equals the expected header keyword.
-function dropHeader(rows: string[][], firstHeader: string): string[][] {
-  if (rows.length && rows[0][0]?.trim().toLowerCase() === firstHeader) return rows.slice(1)
-  return rows
-}
-
 export default function ImportCsvModal({ onClose, onSaved }: Props) {
   const [format, setFormat] = useState<Format>('ingredients')
+  const [mode, setMode] = useState<SyncMode>('add')
   const [text, setText] = useState('')
   const [rows, setRows] = useState<string[][] | null>(null)
-  const [summary, setSummary] = useState<Summary | null>(null)
+  const [summary, setSummary] = useState<ImportSummary | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const { units, loading } = useUnits()
@@ -59,75 +41,23 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
 
   async function runImport() {
     if (!rows) return
-    if (loading || units.length === 0) {
+    if (format === 'log' && (loading || units.length === 0)) {
       setError('Units are still loading — try again in a moment.')
       return
     }
     setBusy(true)
     setError('')
-    const sum: Summary = { inserted: 0, stubs: [], errors: [] }
-    const allowedUnits = new Set(units.map(u => u.name))
     try {
+      let result: ImportSummary
       if (format === 'ingredients') {
-        for (const r of dropHeader(rows, 'name')) {
-          const [name, type] = r
-          if (!name?.trim()) { sum.errors.push(`Empty name in row: ${r.join(',')}`); continue }
-          try {
-            await insertIngredient({ name: name.trim(), type: type?.trim() || null })
-            sum.inserted++
-          } catch (e: any) {
-            sum.errors.push(`Could not import ingredient "${name.trim()}": ${e?.message ?? 'unknown error'}`)
-          }
-        }
+        result = await syncIngredients(parseIngredientRows(rows), mode)
       } else if (format === 'foods') {
-        for (const r of dropHeader(rows, 'name')) {
-          const [name, ingredientsCell] = r
-          if (!name?.trim()) { sum.errors.push(`Empty name in row: ${r.join(',')}`); continue }
-          try {
-            const ingNames = (ingredientsCell ?? '')
-              .split(',').map(s => s.trim()).filter(Boolean)
-            const ids: string[] = []
-            for (const ingName of ingNames) {
-              const existing = await getOrCreateIngredientByName(ingName)
-              if (existing.type === null) sum.stubs.push(`ingredient: ${existing.name}`)
-              ids.push(existing.id)
-            }
-            await insertFood({ name: name.trim() }, ids)
-            sum.inserted++
-          } catch (e: any) {
-            sum.errors.push(`Could not import food "${name.trim()}": ${e?.message ?? 'unknown error'}`)
-          }
-        }
+        result = await syncFoods(parseFoodRows(rows), mode)
       } else {
-        for (const r of dropHeader(rows, 'food')) {
-          const [foodName, typeRaw, amount, unit, eatenAt] = r
-          if (!foodName?.trim()) { sum.errors.push(`Empty food in row: ${r.join(',')}`); continue }
-          let logType: string | null = null
-          try { logType = validateLogType(typeRaw ?? '') }
-          catch (e: any) { sum.errors.push(`${e?.message ?? 'Bad type'} (row: ${r.join(',')})`); continue }
-          const amountRaw = (amount ?? '').trim()
-          let amt: number | null = null
-          let u: string | null = null
-          if (amountRaw) {
-            amt = Number(amountRaw)
-            if (!(amt > 0)) { sum.errors.push(`Bad amount "${amount}" for ${foodName}`); continue }
-            u = (unit ?? '').trim()
-            if (!allowedUnits.has(u)) { sum.errors.push(`Bad unit "${unit}" for ${foodName}`); continue }
-          }
-          const when = eatenAt?.trim() ? new Date(eatenAt.trim()) : new Date()
-          if (isNaN(when.getTime())) { sum.errors.push(`Bad date "${eatenAt}" for ${foodName}`); continue }
-          try {
-            const food = await getOrCreateFoodByName(foodName.trim())
-            if (!food.ingredients?.length) sum.stubs.push(`food: ${food.name}`)
-            await insertLogEntry({ food_id: food.id, amount: amt, unit: u, type: logType, eaten_at: when.toISOString() })
-            sum.inserted++
-          } catch (e: any) {
-            sum.errors.push(`Could not import log for "${foodName.trim()}": ${e?.message ?? 'unknown error'}`)
-          }
-        }
+        result = await syncLog(parseLogRows(rows), mode, new Set(units.map(u => u.name)))
       }
-      setSummary(sum)
-      if (sum.inserted > 0) onSaved()
+      setSummary(result)
+      if (result.inserted + result.updated + result.deleted > 0) onSaved()
     } catch (e: any) {
       setError(e?.message ?? 'Import failed.')
     } finally {
@@ -146,17 +76,25 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
 
         {summary ? (
           <div>
-            <p className={modalStyles.desc}>Imported {summary.inserted} row(s).</p>
+            <p className={modalStyles.desc}>
+              Inserted {summary.inserted} · Updated {summary.updated} · Deleted {summary.deleted}
+            </p>
+            {summary.blocked.length > 0 && (
+              <>
+                <label className={formStyles.label}>COULD NOT DELETE ({summary.blocked.length})</label>
+                <ul>{summary.blocked.map((s, i) => <li key={i} style={{ fontSize: 13, color: 'var(--danger, #B83A3A)' }}>{s}</li>)}</ul>
+              </>
+            )}
             {summary.stubs.length > 0 && (
               <>
                 <label className={formStyles.label}>STUBS CREATED ({summary.stubs.length})</label>
                 <ul>{summary.stubs.map((s, i) => <li key={i} style={{ fontSize: 13 }}>{s}</li>)}</ul>
               </>
             )}
-            {summary.errors.length > 0 && (
+            {summary.skipped.length > 0 && (
               <>
-                <label className={formStyles.label}>SKIPPED ROWS ({summary.errors.length})</label>
-                <ul>{summary.errors.map((s, i) => <li key={i} style={{ fontSize: 13, color: 'var(--danger, #B83A3A)' }}>{s}</li>)}</ul>
+                <label className={formStyles.label}>SKIPPED ({summary.skipped.length})</label>
+                <ul>{summary.skipped.map((s, i) => <li key={i} style={{ fontSize: 13, color: 'var(--danger, #B83A3A)' }}>{s}</li>)}</ul>
               </>
             )}
             <button className={formStyles.nextBtn} onClick={onClose}>Done</button>
@@ -165,9 +103,15 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
           <div>
             <label className={formStyles.label}>FORMAT</label>
             <select className={formStyles.input} value={format} onChange={e => { setFormat(e.target.value as Format); setRows(null) }}>
-              <option value="ingredients">Ingredients — name, type</option>
-              <option value="foods">Foods — name, ingredients</option>
-              <option value="log">Log — food, type, amount, unit, eaten_at</option>
+              <option value="ingredients">Ingredients — id, name, type</option>
+              <option value="foods">Foods — id, name, type, ingredients</option>
+              <option value="log">Log — id, food, amount, unit, eaten_at</option>
+            </select>
+
+            <label className={formStyles.label}>MODE</label>
+            <select className={formStyles.input} value={mode} onChange={e => setMode(e.target.value as SyncMode)}>
+              <option value="add">Add new only — insert rows with a blank id, skip the rest</option>
+              <option value="sync">Full sync — update matched ids, insert blank ids, delete missing ids</option>
             </select>
 
             <label className={formStyles.label}>UPLOAD .CSV</label>

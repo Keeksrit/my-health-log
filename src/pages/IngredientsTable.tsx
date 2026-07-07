@@ -3,6 +3,8 @@ import type { Ingredient } from '../types/nutrition'
 import { INGREDIENT_TYPES } from '../types/nutrition'
 import { useEditableRows } from '../lib/useEditableRows'
 import { updateIngredient, deleteIngredient } from '../lib/nutrition'
+import { ingredientsToCsv } from '../lib/nutritionCsv'
+import { downloadCsv } from '../lib/utils'
 import styles from './Nutrition.module.css'
 
 interface Props {
@@ -41,7 +43,10 @@ export default function IngredientsTable({ ingredients, onSaved }: Props) {
               <button className={styles.tableBtn} disabled={saving} onClick={t.cancel}>Cancel</button>
             </>
           ) : (
-            ingredients.length > 0 && <button className={styles.tableBtn} onClick={t.begin}>Edit</button>
+            <>
+              {ingredients.length > 0 && <button className={styles.tableBtn} onClick={t.begin}>Edit</button>}
+              <button className={styles.tableBtn} onClick={() => downloadCsv('ingredients.csv', ingredientsToCsv(ingredients))}>⬇ Export</button>
+            </>
           )}
         </div>
       </div>

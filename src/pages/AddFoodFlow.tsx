@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Food, Ingredient } from '../types/nutrition'
 import { fetchIngredients, insertFood, matchFoodByIngredientSet } from '../lib/nutrition'
+import { useFoodTypes } from '../lib/useFoodTypes'
 import AddIngredientModal from './AddIngredientModal'
 import modalStyles from './Modal.module.css'
 import formStyles from './AddMedicationFlow.module.css'
@@ -20,6 +21,8 @@ export default function AddFoodFlow({ foods, onClose, onSaved }: Props) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
+  const { foodTypes } = useFoodTypes()
+  const [type, setType] = useState<string>('')
 
   async function loadIngredients() {
     try { setAllIngredients(await fetchIngredients()) }
@@ -57,7 +60,7 @@ export default function AddFoodFlow({ foods, onClose, onSaved }: Props) {
     setSaving(true)
     setError('')
     try {
-      await insertFood({ name: name.trim() }, pickedIds)
+      await insertFood({ name: name.trim(), type: type || null }, pickedIds)
       onSaved()
     } catch (e: any) {
       if (e?.code === '23505') setError(`A food named "${name.trim()}" already exists.`)
@@ -113,6 +116,12 @@ export default function AddFoodFlow({ foods, onClose, onSaved }: Props) {
             This is <strong>{match.name}</strong> — a food with exactly these ingredients already exists.
           </div>
         )}
+
+        <label className={formStyles.label}>TYPE <span className={formStyles.optional}>(optional)</span></label>
+        <select className={formStyles.input} value={type} onChange={e => setType(e.target.value)}>
+          <option value="">—</option>
+          {foodTypes.map(x => <option key={x.id} value={x.name}>{x.name}</option>)}
+        </select>
 
         <label className={formStyles.label}>NAME *</label>
         <input

@@ -16,6 +16,24 @@
 --
 -- Idempotent: safe to re-run.
 
+-- PRE-FLIGHT: verify authenticated grants first
+--
+-- RLS only filters rows AFTER table-level GRANT checks pass. If a table has
+-- a grant to anon but NOT to authenticated, logged-in users will get
+-- "permission denied" even though RLS would allow them. Verify and add missing
+-- grants BEFORE running this migration:
+--
+-- select grantee, table_name, privilege_type
+--   from information_schema.role_table_grants
+--  where table_schema = 'health' and grantee = 'authenticated'
+--  order by table_name;
+--
+-- If authenticated is missing select/insert/update/delete on any table
+-- (especially entries and medication_*), run:
+--   grant select, insert, update, delete on health.<table> to authenticated;
+-- for each missing table BEFORE running this migration — otherwise logged-in
+-- access to those tables will fail with "permission denied".
+
 do $$
 declare
   tbl text;

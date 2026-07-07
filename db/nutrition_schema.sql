@@ -56,6 +56,7 @@ to anon, authenticated;
 -- RLS: require an authenticated JWT for the nutrition tables (mirrors the
 -- health-schema lockdown in migrations/2026-07-07-auth-rls.sql). The anon grants
 -- above remain but are blocked by these policies. Idempotent via drop-if-exists.
+-- For existing databases, use migrations/2026-07-07-auth-rls.sql (drops all prior policies by name).
 do $$
 declare tbl text;
 begin

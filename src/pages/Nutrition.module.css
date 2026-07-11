@@ -186,12 +186,12 @@
   position: relative;
   flex: 1;
   min-height: 22px;
-  /* faint vertical gridlines every 2 hours (12 intervals across 24h) */
+  /* faint vertical gridlines every hour (24 intervals across 24h) */
   background:
     repeating-linear-gradient(
       to right,
       var(--border) 0 1px,
-      transparent 1px calc(100% / 12)
+      transparent 1px calc(100% / 24)
     );
   border-bottom: 2px solid var(--border);
 }

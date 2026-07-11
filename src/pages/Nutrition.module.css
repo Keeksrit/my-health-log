@@ -209,6 +209,18 @@
   pointer-events: none;
 }
 
+/* Nightly sleep, drawn behind the food dots. rgba fill (not `opacity`) so the
+   tooltip child renders fully opaque. */
+.sleepBand {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(99, 102, 168, 0.22);
+  border-radius: 3px;
+  z-index: 0;
+}
+.sleepBand:hover .tooltip { display: block; }
+
 .dot {
   position: absolute;
   width: 12px;

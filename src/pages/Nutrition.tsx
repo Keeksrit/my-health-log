@@ -32,8 +32,6 @@ interface DayGroup {
   label: string
   dots: DotPos[]
   maxLevel: number
-  firstMin: number
-  lastMin: number
 }
 
 function minutesOfDay(d: Date) { return d.getHours() * 60 + d.getMinutes() }
@@ -71,9 +69,7 @@ function groupByDay(entries: LogEntry[]): DayGroup[] {
     const label = new Date(key + 'T00:00:00').toLocaleDateString(undefined, {
       weekday: 'short', month: 'short', day: 'numeric',
     })
-    const firstMin = dots[0].min
-    const lastMin = dots[dots.length - 1].min
-    groups.push({ key, label, dots, maxLevel, firstMin, lastMin })
+    groups.push({ key, label, dots, maxLevel })
   }
 
   groups.sort((a, b) => (a.key < b.key ? 1 : -1))
@@ -196,14 +192,6 @@ export default function Nutrition() {
                     className={styles.track}
                     style={{ paddingTop: 10 + day.maxLevel * 16 }}
                   >
-                    <div
-                      className={styles.fast}
-                      style={{ left: 0, width: `${(day.firstMin / 1440) * 100}%` }}
-                    />
-                    <div
-                      className={styles.fast}
-                      style={{ left: `${(day.lastMin / 1440) * 100}%`, right: 0 }}
-                    />
                     {sleepSegmentsForDay(sleep, day.key).map((seg, i) => (
                       <div
                         key={`sleep-${i}`}

@@ -196,19 +196,6 @@
   border-bottom: 2px solid var(--border);
 }
 
-/* Shaded fasting periods — before the first meal and after the last meal.
-   The un-shaded gap between them is the day's eating window, so its width
-   is easy to compare down the column of days. */
-.fast {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  background: var(--accent-l);
-  opacity: 0.55;
-  z-index: 0;
-  pointer-events: none;
-}
-
 /* Nightly sleep, drawn behind the food dots. rgba fill (not `opacity`) so the
    tooltip child renders fully opaque. */
 .sleepBand {

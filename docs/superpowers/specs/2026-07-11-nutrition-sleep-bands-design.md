@@ -112,6 +112,20 @@ grant select on sports.oura_sleep to authenticated;
 -- plus an RLS policy `auth.role() = 'authenticated'` if RLS is enabled on it
 ```
 
+Also ensure the `sports` schema is on Supabase → **Settings → API → Exposed
+schemas** (PostgREST search path). If it is not exposed, `fetchSleep` fails with
+`PGRST106`; the best-effort catch swallows it, so the food timeline still works
+and bands simply never appear. (sports-hub reads this schema already, so it is
+expected to be exposed.) A one-time post-deploy smoke check — sign in, confirm
+bands render on a day with known sleep — covers all of the above.
+
+## Known limitation
+
+`sleepSegmentsForDay` treats every local day as exactly 24h (`dayStart + 24h`).
+On the two DST-transition days per year the local day is 23h/25h, so a band edge
+can be off by up to ~1h relative to the food dots (which use `getHours()`).
+Cosmetic, ~2 days/year, accepted for this best-effort feature.
+
 ## Edge cases
 
 - Day with no sleep row → no band (normal).

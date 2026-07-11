@@ -6,6 +6,8 @@ import {
   fetchLog,
   deleteLogEntry,
 } from '../lib/nutrition'
+import { fetchSleep, sleepSegmentsForDay, sleepTooltip } from '../lib/sleep'
+import type { SleepNight } from '../lib/sleep'
 import AddFoodFlow from './AddFoodFlow'
 import AddIngredientModal from './AddIngredientModal'
 import LogEntryModal from './LogEntryModal'
@@ -102,6 +104,7 @@ export default function Nutrition() {
   const [foods, setFoods] = useState<Food[]>([])
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [log, setLog] = useState<LogEntry[]>([])
+  const [sleep, setSleep] = useState<SleepNight[]>([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState<Modal>(null)
   const [editEntry, setEditEntry] = useState<LogEntry | null>(null)
@@ -123,6 +126,13 @@ export default function Nutrition() {
       setError(e?.message ?? 'Could not load nutrition data.')
     } finally {
       setLoading(false)
+    }
+    // Sleep is best-effort: a missing grant/RLS on sports.oura_sleep must
+    // never blank the food timeline.
+    try {
+      setSleep(await fetchSleep())
+    } catch (e) {
+      console.warn('Sleep data unavailable:', e)
     }
   }
   useEffect(() => { load() }, [])
@@ -194,6 +204,18 @@ export default function Nutrition() {
                       className={styles.fast}
                       style={{ left: `${(day.lastMin / 1440) * 100}%`, right: 0 }}
                     />
+                    {sleepSegmentsForDay(sleep, day.key).map((seg, i) => (
+                      <div
+                        key={`sleep-${i}`}
+                        className={styles.sleepBand}
+                        style={{
+                          left: `${(seg.startMin / 1440) * 100}%`,
+                          width: `${((seg.endMin - seg.startMin) / 1440) * 100}%`,
+                        }}
+                      >
+                        <span className={styles.tooltip}>{sleepTooltip(seg.night)}</span>
+                      </div>
+                    ))}
                     {day.dots.map(({ entry, min, level }) => {
                       const name = entry.food?.name ?? 'Unknown food'
                       const dotClass = highlightFood

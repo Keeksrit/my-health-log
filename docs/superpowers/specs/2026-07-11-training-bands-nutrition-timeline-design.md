@@ -34,15 +34,28 @@ Relevant columns (`sports/src/types/index.ts` → `Session`):
 
 ### Positioning and the "estimated" rule
 
-For each session on a given day:
+Following `sleepSegmentsForDay`, each session is converted to an **absolute**
+start/end and then clipped to the requested day's window — this handles day-filtering,
+midnight-clipping, and cross-midnight splitting uniformly:
 
-- `startMin` = minutes-of-day from `start_time`; **fallback 20:00 (1200 min)** when
-  `start_time` is missing.
-- `endMin` = `startMin + duration`; **fallback duration 60 min (3600 s)** when
-  `duration_seconds` is missing.
-- Clip `[startMin, endMin]` to `[0, 1440]`.
+- Absolute `start` = `new Date(\`${date}T${start_time}\`)`; **`start_time` fallback
+  20:00** when missing (local time, consistent with the food dots and day boundaries).
+- Absolute `end` = `start + duration_seconds`; **duration fallback 60 min (3600 s)**
+  when missing.
+- For a requested `dayKey`, clip `[start, end]` to `[dayStart, dayEnd]` and convert the
+  clipped range to `startMin`/`endMin` (minutes 0..1440 from that day's midnight). Drop
+  the segment if the clipped range is empty.
 - `estimated = true` when **either** `start_time` **or** `duration_seconds` was
-  missing (i.e. any fallback value was used).
+  missing (i.e. any fallback value was used). `duration_seconds` is confirmed nullable
+  (`int`, no `NOT NULL`; Strava sync writes `null` when `moving_time` is absent), so
+  this branch is live, not defensive-only.
+
+**Cross-midnight:** a session dated D that starts late and runs past 24:00 renders as
+two segments — the tail on day D (`start→24:00`) and the head on day D+1
+(`00:00→overflow`) — because `trainingSegmentsForDay` iterates **all** sessions per
+requested day, not just those whose `date === dayKey`. Exactly the mechanism
+`sleepSegmentsForDay` uses for a night crossing midnight. The `estimated` flag applies
+to both segments.
 
 Bands are drawn behind the food dots (`z-index: 0`, like sleep bands) and are **not
 clickable** — hover-tooltip only.
@@ -97,9 +110,10 @@ export async function fetchTraining(): Promise<TrainingSession[]>
   `console.warn`, never blanks the food timeline. (Throws here; caught in `Nutrition.tsx`,
   same as `fetchSleep`.)
 - `trainingSegmentsForDay` and `trainingTooltip` are pure and cover the fallback +
-  `estimated` logic above.
+  `estimated` + cross-midnight logic above. `trainingSegmentsForDay` iterates all
+  sessions and clips each to the requested day (mirrors `sleepSegmentsForDay`).
 
-Constants: `DEFAULT_START_MIN = 1200` (20:00), `DEFAULT_DURATION_S = 3600` (60 min).
+Constants: `DEFAULT_START_TIME = '20:00:00'`, `DEFAULT_DURATION_S = 3600` (60 min).
 
 ### `Nutrition.tsx` (edit)
 
@@ -135,8 +149,10 @@ Constants: `DEFAULT_START_MIN = 1200` (20:00), `DEFAULT_DURATION_S = 3600` (60 m
 
 - `trainingSegmentsForDay`: real start/duration; 20:00 fallback when no start_time;
   60-min fallback when no duration; `estimated` flag true when either missing, false
-  when both present; midnight clipping (band extending past 24:00 clipped to 1440);
-  filters to the requested day.
+  when both present; filters to the requested day (session on another day → no
+  segment); **cross-midnight** — a session dated D at 23:00 for 180 min yields
+  `[1380, 1440]` when queried for D and `[0, 120]` when queried for D+1, both with the
+  same `estimated` value.
 - `trainingTooltip`: with avg_hr, without avg_hr (null/undefined omitted).
 
 Verification: `npm run build` (tsc + Vite) + `npx vitest run`. No React component test
@@ -154,6 +170,4 @@ setting are the two things to recheck. A failed `fetchTraining` is swallowed by 
 
 - No table-view representation (timeline only, like sleep bands).
 - No click/edit interaction on bands.
-- No cross-midnight splitting of a single session into two days (sessions are keyed by
-  a single `date`; a session running past midnight is simply clipped at 24:00).
 - No filtering by session type or aggregation.

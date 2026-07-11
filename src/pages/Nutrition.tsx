@@ -8,6 +8,8 @@ import {
 } from '../lib/nutrition'
 import { fetchSleep, sleepSegmentsForDay, sleepTooltip } from '../lib/sleep'
 import type { SleepNight } from '../lib/sleep'
+import { fetchTraining, trainingSegmentsForDay, trainingTooltip } from '../lib/training'
+import type { TrainingSession } from '../lib/training'
 import AddFoodFlow from './AddFoodFlow'
 import AddIngredientModal from './AddIngredientModal'
 import LogEntryModal from './LogEntryModal'
@@ -101,6 +103,7 @@ export default function Nutrition() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [log, setLog] = useState<LogEntry[]>([])
   const [sleep, setSleep] = useState<SleepNight[]>([])
+  const [training, setTraining] = useState<TrainingSession[]>([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState<Modal>(null)
   const [editEntry, setEditEntry] = useState<LogEntry | null>(null)
@@ -129,6 +132,13 @@ export default function Nutrition() {
       setSleep(await fetchSleep())
     } catch (e) {
       console.warn('Sleep data unavailable:', e)
+    }
+    // Training is best-effort too: a missing grant/RLS on sports.sessions must
+    // never blank the food timeline.
+    try {
+      setTraining(await fetchTraining())
+    } catch (e) {
+      console.warn('Training data unavailable:', e)
     }
   }
   useEffect(() => { load() }, [])
@@ -202,6 +212,18 @@ export default function Nutrition() {
                         }}
                       >
                         <span className={styles.tooltip}>{sleepTooltip(seg.night)}</span>
+                      </div>
+                    ))}
+                    {trainingSegmentsForDay(training, day.key).map((seg, i) => (
+                      <div
+                        key={`training-${i}`}
+                        className={`${styles.trainingBand} ${seg.estimated ? styles.trainingBandEstimated : ''}`}
+                        style={{
+                          left: `${(seg.startMin / 1440) * 100}%`,
+                          width: `${((seg.endMin - seg.startMin) / 1440) * 100}%`,
+                        }}
+                      >
+                        <span className={styles.tooltip}>{trainingTooltip(seg.session)}</span>
                       </div>
                     ))}
                     {day.dots.map(({ entry, min, level }) => {

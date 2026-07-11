@@ -208,6 +208,25 @@
 }
 .sleepBand:hover .tooltip { display: block; }
 
+/* Training sessions, drawn behind the food dots. rgba fill (not `opacity`) so the
+   tooltip child renders fully opaque. Estimated bands (missing start_time/duration)
+   are striped to signal the position/width is a placeholder, not measured. */
+.trainingBand {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(230, 145, 50, 0.24);
+  border-radius: 3px;
+  z-index: 0;
+}
+.trainingBand:hover .tooltip { display: block; }
+.trainingBandEstimated {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(230, 145, 50, 0.30) 0 6px,
+    rgba(230, 145, 50, 0.10) 6px 12px);
+}
+
 .dot {
   position: absolute;
   width: 12px;

@@ -235,14 +235,12 @@
   padding: 0;
   border: 2px solid var(--card);
   border-radius: 50%;
-  background: var(--accent);
   cursor: pointer;
   z-index: 1;
 }
 .dot:hover { z-index: 3; }
 
 .dotActive {
-  background: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-l);
   z-index: 4;
 }
@@ -301,3 +299,11 @@
   background: none; font-size: 13px; color: var(--ink2); cursor: pointer;
 }
 .subBtnActive { background: var(--accent-l); color: var(--accent); border-color: var(--accent); }
+
+.legend { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.legendItem { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 13px; }
+.legendSwatch {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--card); box-shadow: 0 0 0 1px var(--border);
+  flex: none;
+}

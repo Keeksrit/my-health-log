@@ -10,6 +10,8 @@ import { fetchSleep, sleepSegmentsForDay, sleepTooltip } from '../lib/sleep'
 import type { SleepNight } from '../lib/sleep'
 import { fetchTraining, trainingSegmentsForDay, trainingTooltip } from '../lib/training'
 import type { TrainingSession } from '../lib/training'
+import { useFoodTypes } from '../lib/useFoodTypes'
+import { colorForType, FALLBACK_COLOR } from '../lib/foodTypeColors'
 import AddFoodFlow from './AddFoodFlow'
 import AddIngredientModal from './AddIngredientModal'
 import LogEntryModal from './LogEntryModal'
@@ -97,6 +99,25 @@ function dotTooltip(e: LogEntry) {
   return `${time} · ${name}${amt}`
 }
 
+// Food types present in the given log window, each with its dot color, for the
+// legend. Appends a grey "No type" row when some entries have no type.
+function legendItems(
+  entries: LogEntry[],
+  foodTypes: Array<{ name: string; color: string | null }>,
+): { name: string; color: string }[] {
+  const present = new Set<string>()
+  let hasUntyped = false
+  for (const e of entries) {
+    const t = e.food?.type
+    if (t) present.add(t); else hasUntyped = true
+  }
+  const items = foodTypes
+    .filter(t => present.has(t.name))
+    .map(t => ({ name: t.name, color: colorForType(t.name, foodTypes) }))
+  if (hasUntyped) items.push({ name: 'No type', color: FALLBACK_COLOR })
+  return items
+}
+
 export default function Nutrition() {
   const [tab, setTab] = useState<Tab>('log')
   const [foods, setFoods] = useState<Food[]>([])
@@ -110,6 +131,7 @@ export default function Nutrition() {
   const [highlightFood, setHighlightFood] = useState<string | null>(null)
   const [logView, setLogView] = useState<'timeline' | 'table'>('timeline')
   const [error, setError] = useState('')
+  const { foodTypes } = useFoodTypes()
 
   async function load() {
     try {
@@ -228,6 +250,7 @@ export default function Nutrition() {
                     ))}
                     {day.dots.map(({ entry, min, level }) => {
                       const name = entry.food?.name ?? 'Unknown food'
+                      const color = colorForType(entry.food?.type, foodTypes)
                       const dotClass = highlightFood
                         ? (name === highlightFood ? styles.dotActive : styles.dotDim)
                         : ''
@@ -235,7 +258,7 @@ export default function Nutrition() {
                       <button
                         key={entry.id}
                         className={`${styles.dot} ${dotClass}`}
-                        style={{ left: `${(min / 1440) * 100}%`, bottom: 6 + level * 16 }}
+                        style={{ left: `${(min / 1440) * 100}%`, bottom: 6 + level * 16, background: color }}
                         onClick={(ev) => {
                           if (ev.shiftKey) { handleDeleteEntry(entry); return }
                           setEditEntry(entry); setModal('logEntry')
@@ -265,6 +288,19 @@ export default function Nutrition() {
                   </li>
                 ))}
               </ul>
+              {legendItems(log, foodTypes).length > 0 && (
+                <>
+                  <p className={styles.sectionLabel}>Types</p>
+                  <ul className={styles.legend}>
+                    {legendItems(log, foodTypes).map(item => (
+                      <li key={item.name} className={styles.legendItem}>
+                        <span className={styles.legendSwatch} style={{ background: item.color }} />
+                        <span>{item.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
               {highlightFood && (
                 <button className={styles.clearHighlight} onClick={() => setHighlightFood(null)}>
                   Clear highlight

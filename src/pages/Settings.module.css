@@ -19,3 +19,10 @@
 }
 .add:disabled { opacity: .6; cursor: default; }
 .error { color: var(--red); font-size: .85rem; margin-top: .75rem; }
+.swatches { display: flex; flex-wrap: wrap; gap: .3rem; margin: 0 .5rem; }
+.swatch {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--card); padding: 0; cursor: pointer;
+  box-shadow: 0 0 0 1px var(--border);
+}
+.swatchActive { box-shadow: 0 0 0 2px var(--ink); }

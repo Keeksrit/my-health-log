@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 export interface FoodType {
   id: string
   name: string
+  color: string | null
   created_at: string
 }
 
@@ -37,5 +38,13 @@ export async function addFoodType(name: string): Promise<FoodType> {
 
 export async function deleteFoodType(id: string): Promise<void> {
   const { error } = await supabase.from('nutrition_food_types').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function updateFoodTypeColor(id: string, color: string | null): Promise<void> {
+  const { error } = await supabase
+    .from('nutrition_food_types')
+    .update({ color })
+    .eq('id', id)
   if (error) throw error
 }

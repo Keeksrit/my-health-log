@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useUnits } from '../lib/useUnits'
 import { addUnit, deleteUnit } from '../lib/units'
 import { useFoodTypes } from '../lib/useFoodTypes'
-import { addFoodType, deleteFoodType } from '../lib/foodTypes'
+import { addFoodType, deleteFoodType, updateFoodTypeColor } from '../lib/foodTypes'
+import { PALETTE } from '../lib/foodTypeColors'
 import styles from './Settings.module.css'
 
 export default function Settings() {
@@ -101,6 +102,16 @@ function FoodTypesSection() {
     }
   }
 
+  async function handleColor(id: string, color: string) {
+    setError(null)
+    try {
+      await updateFoodTypeColor(id, color)
+      await reload()
+    } catch (err: any) {
+      setError(err?.message ?? 'Could not set color.')
+    }
+  }
+
   return (
     <>
       <h2 className={styles.heading}>Food types</h2>
@@ -111,6 +122,18 @@ function FoodTypesSection() {
         {foodTypes.map(t => (
           <li key={t.id} className={styles.item}>
             <span>{t.name}</span>
+            <span className={styles.swatches}>
+              {PALETTE.map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`${styles.swatch} ${t.color === c ? styles.swatchActive : ''}`}
+                  style={{ background: c }}
+                  onClick={() => handleColor(t.id, c)}
+                  aria-label={`Set ${t.name} color ${c}`}
+                />
+              ))}
+            </span>
             <button className={styles.remove} onClick={() => handleDelete(t.id)} aria-label={`Delete ${t.name}`}>×</button>
           </li>
         ))}

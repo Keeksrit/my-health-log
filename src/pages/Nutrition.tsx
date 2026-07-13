@@ -12,6 +12,8 @@ import { fetchTraining, trainingSegmentsForDay, trainingTooltip } from '../lib/t
 import type { TrainingSession } from '../lib/training'
 import { useFoodTypes } from '../lib/useFoodTypes'
 import { colorForType, FALLBACK_COLOR } from '../lib/foodTypeColors'
+import { fetchIncompleteDays, setDayIncomplete } from '../lib/incompleteDays'
+import { entryVisibleByType, filterLog } from '../lib/nutritionFilters'
 import AddFoodFlow from './AddFoodFlow'
 import AddIngredientModal from './AddIngredientModal'
 import LogEntryModal from './LogEntryModal'
@@ -99,12 +101,12 @@ function dotTooltip(e: LogEntry) {
   return `${time} · ${name}${amt}`
 }
 
-// Food types present in the given log window, each with its dot color, for the
-// legend. Appends a grey "No type" row when some entries have no type.
-function legendItems(
+// Food types present in the log (for filter chips), each with its dot color,
+// plus whether any untyped entries exist (the "No type" chip).
+function chipItems(
   entries: LogEntry[],
   foodTypes: Array<{ name: string; color: string | null }>,
-): { name: string; color: string }[] {
+): { items: { name: string; color: string }[]; hasUntyped: boolean } {
   const present = new Set<string>()
   let hasUntyped = false
   for (const e of entries) {
@@ -114,8 +116,7 @@ function legendItems(
   const items = foodTypes
     .filter(t => present.has(t.name))
     .map(t => ({ name: t.name, color: colorForType(t.name, foodTypes) }))
-  if (hasUntyped) items.push({ name: 'No type', color: FALLBACK_COLOR })
-  return items
+  return { items, hasUntyped }
 }
 
 export default function Nutrition() {
@@ -132,6 +133,18 @@ export default function Nutrition() {
   const [logView, setLogView] = useState<'timeline' | 'table'>('timeline')
   const [error, setError] = useState('')
   const { foodTypes } = useFoodTypes()
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
+  const [hideNoType, setHideNoType] = useState(false)
+  const [hideIncomplete, setHideIncomplete] = useState(false)
+  const [incompleteDays, setIncompleteDays] = useState<Set<string>>(new Set())
+
+  function toggleType(name: string) {
+    setHiddenTypes(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name); else next.add(name)
+      return next
+    })
+  }
 
   async function load() {
     try {
@@ -162,11 +175,39 @@ export default function Nutrition() {
     } catch (e) {
       console.warn('Training data unavailable:', e)
     }
+    // Incomplete-day flags are best-effort: a missing table (migration not yet
+    // run) must never blank the timeline — the feature is simply inert.
+    try {
+      setIncompleteDays(await fetchIncompleteDays())
+    } catch (e) {
+      console.warn('Incomplete-day flags unavailable:', e)
+    }
   }
   useEffect(() => { load() }, [])
 
   function closeModal() { setModal(null); setEditEntry(null) }
   function afterSave() { closeModal(); load() }
+
+  async function toggleDayIncomplete(dayKey: string) {
+    const flagged = !incompleteDays.has(dayKey)
+    // Optimistic update.
+    setIncompleteDays(prev => {
+      const next = new Set(prev)
+      if (flagged) next.add(dayKey); else next.delete(dayKey)
+      return next
+    })
+    try {
+      await setDayIncomplete(dayKey, flagged)
+    } catch (e: any) {
+      // Roll back on failure.
+      setIncompleteDays(prev => {
+        const next = new Set(prev)
+        if (flagged) next.delete(dayKey); else next.add(dayKey)
+        return next
+      })
+      setError(e?.message ?? 'Could not update the incomplete flag.')
+    }
+  }
 
   async function handleDeleteEntry(entry: LogEntry): Promise<boolean> {
     if (!confirm('Delete this log entry?')) return false
@@ -196,8 +237,56 @@ export default function Nutrition() {
             <button className={`${styles.subBtn} ${logView === 'table' ? styles.subBtnActive : ''}`}
               onClick={() => setLogView('table')}>Table</button>
           </div>
-          {logView === 'table' ? (
-            <LogTable log={log} foods={foods} onSaved={load} />
+          {(() => {
+            const { items, hasUntyped } = chipItems(log, foodTypes)
+            return (
+              <div className={styles.filterBar}>
+                <label className={styles.filterToggle}>
+                  <input
+                    type="checkbox"
+                    checked={hideIncomplete}
+                    onChange={e => setHideIncomplete(e.target.checked)}
+                  />
+                  Hide incomplete days
+                </label>
+                <div className={styles.chips}>
+                  {items.map(item => {
+                    const off = hiddenTypes.has(item.name)
+                    return (
+                      <button
+                        key={item.name}
+                        className={`${styles.chip} ${off ? styles.chipOff : ''}`}
+                        onClick={() => toggleType(item.name)}
+                      >
+                        <span className={styles.chipSwatch} style={{ background: item.color }} />
+                        {item.name}
+                      </button>
+                    )
+                  })}
+                  {hasUntyped && (
+                    <button
+                      className={`${styles.chip} ${hideNoType ? styles.chipOff : ''}`}
+                      onClick={() => setHideNoType(v => !v)}
+                    >
+                      <span className={styles.chipSwatch} style={{ background: FALLBACK_COLOR }} />
+                      No type
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
+          {(() => {
+            // Shared filtered set: drives both the Table view's rows and the
+            // sidebar's "Most logged" counts (per spec — the timeline/dots
+            // keep all days and hide per-entry visibility separately).
+            const filteredLog = filterLog(log, { hideIncomplete, incompleteDays, hiddenTypes, hideNoType })
+            return logView === 'table' ? (
+            <LogTable
+              log={filteredLog}
+              foods={foods}
+              onSaved={load}
+            />
           ) : log.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>🥗</div>
@@ -217,9 +306,22 @@ export default function Nutrition() {
                   ))}
                 </div>
               </div>
-              {groupByDay(log).map(day => (
+              {groupByDay(log)
+                .filter(day => !(hideIncomplete && incompleteDays.has(day.key)))
+                .map(day => {
+                const flagged = incompleteDays.has(day.key)
+                return (
                 <div key={day.key} className={styles.dayRow}>
-                  <div className={styles.dayLabel}>{day.label}</div>
+                  <div className={`${styles.dayLabel} ${flagged ? styles.dayLabelFlagged : ''}`}>
+                    <button
+                      className={styles.flagBtn}
+                      title={flagged ? 'Marked incomplete — click to clear' : 'Mark day incomplete'}
+                      onClick={() => toggleDayIncomplete(day.key)}
+                    >
+                      {flagged ? '⚠' : '⚑'}
+                    </button>
+                    {day.label}
+                  </div>
                   <div
                     className={styles.track}
                     style={{ paddingTop: 10 + day.maxLevel * 16 }}
@@ -250,6 +352,7 @@ export default function Nutrition() {
                     ))}
                     {day.dots.map(({ entry, min, level }) => {
                       const name = entry.food?.name ?? 'Unknown food'
+                      if (!entryVisibleByType(entry, hiddenTypes, hideNoType)) return null
                       const color = colorForType(entry.food?.type, foodTypes)
                       const dotClass = highlightFood
                         ? (name === highlightFood ? styles.dotActive : styles.dotDim)
@@ -270,13 +373,14 @@ export default function Nutrition() {
                     })}
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
 
             <aside className={styles.sidebar}>
               <p className={styles.sectionLabel}>Most logged</p>
               <ul className={styles.countList}>
-                {foodCounts(log).map(f => (
+                {foodCounts(filteredLog).map(f => (
                   <li key={f.name}>
                     <button
                       className={`${styles.countItem} ${highlightFood === f.name ? styles.countItemActive : ''}`}
@@ -288,19 +392,6 @@ export default function Nutrition() {
                   </li>
                 ))}
               </ul>
-              {legendItems(log, foodTypes).length > 0 && (
-                <>
-                  <p className={styles.sectionLabel}>Types</p>
-                  <ul className={styles.legend}>
-                    {legendItems(log, foodTypes).map(item => (
-                      <li key={item.name} className={styles.legendItem}>
-                        <span className={styles.legendSwatch} style={{ background: item.color }} />
-                        <span>{item.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
               {highlightFood && (
                 <button className={styles.clearHighlight} onClick={() => setHighlightFood(null)}>
                   Clear highlight
@@ -308,7 +399,8 @@ export default function Nutrition() {
               )}
             </aside>
             </div>
-          )}
+          )
+          })()}
         </>
       ) : (
         <>

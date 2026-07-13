@@ -6,6 +6,7 @@ import {
   parseLogRows,
   computeSyncPlan,
   normalizeLogAmountUnit,
+  parseLocalDateTime,
 } from './nutritionCsv'
 import { parseCsv } from './nutrition'
 
@@ -27,6 +28,32 @@ describe('formatLocalDateTime', () => {
     // Build the expected value from the same Date so the test is timezone-agnostic.
     const iso = new Date(2026, 6, 5, 9, 30).toISOString()
     expect(formatLocalDateTime(iso)).toBe('2026-07-05T09:30')
+  })
+})
+
+describe('parseLocalDateTime', () => {
+  it('parses ISO local date-times', () => {
+    const d = parseLocalDateTime('2026-07-10T10:00')!
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()])
+      .toEqual([2026, 6, 10, 10, 0])
+  })
+
+  it('parses European DD.MM.YYYY HH:MM as local time (not MM.DD)', () => {
+    const d = parseLocalDateTime('10.07.2026 10:00')!
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()])
+      .toEqual([2026, 6, 10, 10, 0])
+  })
+
+  it('parses European date-time with seconds', () => {
+    const d = parseLocalDateTime('04.06.2026 22:30:15')!
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()])
+      .toEqual([2026, 5, 4, 22, 30, 15])
+  })
+
+  it('returns null for empty or unparseable input', () => {
+    expect(parseLocalDateTime('')).toBeNull()
+    expect(parseLocalDateTime('   ')).toBeNull()
+    expect(parseLocalDateTime('not a date')).toBeNull()
   })
 })
 

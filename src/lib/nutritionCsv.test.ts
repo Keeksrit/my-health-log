@@ -5,9 +5,11 @@ import {
   parseFoodRows,
   parseLogRows,
   computeSyncPlan,
+  logsToInsert,
   normalizeLogAmountUnit,
   parseLocalDateTime,
 } from './nutritionCsv'
+import type { LogCsvRow } from './nutritionCsv'
 import { parseCsv } from './nutrition'
 
 describe('toCsv', () => {
@@ -105,6 +107,24 @@ describe('computeSyncPlan', () => {
     expect(plan.updates).toEqual([])
     expect(plan.deletes).toEqual([])
     expect(plan.unknownIds).toEqual([])
+  })
+})
+
+describe('logsToInsert', () => {
+  const row = (id: string, food: string): LogCsvRow =>
+    ({ id, food, amount: '1', unit: 'g', eatenAt: '' })
+
+  it('inserts blank-id rows with no id and unknown-id rows keeping their id (true mirror)', () => {
+    const plan = {
+      inserts: [row('', 'New')],
+      updates: [row('a', 'Existing')],
+      unknownIds: [row('z', 'Restore')],
+      deletes: ['b'],
+    }
+    expect(logsToInsert(plan)).toEqual([
+      { row: row('', 'New') },
+      { id: 'z', row: row('z', 'Restore') },
+    ])
   })
 })
 

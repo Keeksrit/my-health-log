@@ -4,7 +4,7 @@ import { INGREDIENT_TYPES } from '../types/nutrition'
 import type {
   IngredientCsvRow, FoodCsvRow, LogCsvRow, SyncMode,
 } from './nutritionCsv'
-import { computeSyncPlan, normalizeLogAmountUnit, parseLocalDateTime } from './nutritionCsv'
+import { computeSyncPlan, logsToInsert, normalizeLogAmountUnit, parseLocalDateTime } from './nutritionCsv'
 
 const db = createClient(
   import.meta.env.VITE_SUPABASE_URL as string,
@@ -269,7 +269,7 @@ export async function fetchLog(): Promise<LogEntry[]> {
 }
 
 export async function insertLogEntry(
-  input: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }
+  input: { id?: string; food_id: string; amount: number | null; unit: string | null; eaten_at: string }
 ): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').insert(input)
   if (error) throw error
@@ -385,7 +385,6 @@ export async function syncLog(
   const sum = emptySummary()
   const existing = await fetchLog()
   const plan = computeSyncPlan(rows, existing.map(e => e.id), mode)
-  for (const r of plan.unknownIds) sum.skipped.push(`log row references unknown id "${r.id}"`)
 
   async function build(r: LogCsvRow): Promise<{ food_id: string; amount: number | null; unit: string | null; eaten_at: string }> {
     if (!r.food) throw new Error('empty food name')
@@ -397,9 +396,13 @@ export async function syncLog(
     return { food_id: food.id, amount, unit, eaten_at: when.toISOString() }
   }
 
-  for (const r of plan.inserts) {
-    try { await insertLogEntry(await build(r)); sum.inserted++ }
-    catch (e: any) { sum.skipped.push(`insert log "${r.food}": ${e?.message ?? 'error'}`) }
+  // Blank-id rows insert with a DB-generated id; unknown-id rows insert keeping
+  // their id so a full sync mirrors the file (export→import restores ids).
+  for (const { id, row } of logsToInsert(plan)) {
+    try {
+      await insertLogEntry(id ? { id, ...(await build(row)) } : await build(row))
+      sum.inserted++
+    } catch (e: any) { sum.skipped.push(`insert log "${row.food}": ${e?.message ?? 'error'}`) }
   }
   for (const r of plan.updates) {
     try { await updateLogEntry(r.id, await build(r)); sum.updated++ }

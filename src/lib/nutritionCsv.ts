@@ -131,3 +131,15 @@ export function computeSyncPlan<T extends { id: string }>(
   const deletes = dbIds.filter(id => !fileIdSet.has(id))
   return { inserts, updates, unknownIds, deletes }
 }
+
+// Rows a log sync should create: blank-id rows get a DB-generated id; rows whose
+// id isn't in the DB (unknownIds) are inserted keeping that id, so the DB mirrors
+// the file exactly and an export→import round-trip preserves ids.
+export function logsToInsert(
+  plan: Pick<SyncPlan<LogCsvRow>, 'inserts' | 'unknownIds'>
+): { id?: string; row: LogCsvRow }[] {
+  return [
+    ...plan.inserts.map(row => ({ row })),
+    ...plan.unknownIds.map(row => ({ id: row.id, row })),
+  ]
+}

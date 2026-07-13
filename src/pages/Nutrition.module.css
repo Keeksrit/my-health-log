@@ -300,10 +300,26 @@
 }
 .subBtnActive { background: var(--accent-l); color: var(--accent); border-color: var(--accent); }
 
-.legend { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 6px; }
-.legendItem { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 13px; }
-.legendSwatch {
-  width: 12px; height: 12px; border-radius: 50%;
-  border: 2px solid var(--card); box-shadow: 0 0 0 1px var(--border);
-  flex: none;
+/* ── Filter bar (both log views) ── */
+.filterBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-bottom: 12px;
 }
+.filterToggle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--ink); cursor: pointer;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border: 1px solid var(--border); border-radius: 16px;
+  background: none; font-size: 13px; color: var(--ink); cursor: pointer;
+}
+.chipSwatch {
+  width: 10px; height: 10px; border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--border); flex: none;
+}
+.chipOff { opacity: 0.4; text-decoration: line-through; }

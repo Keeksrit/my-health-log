@@ -12,6 +12,7 @@ import { fetchTraining, trainingSegmentsForDay, trainingTooltip } from '../lib/t
 import type { TrainingSession } from '../lib/training'
 import { useFoodTypes } from '../lib/useFoodTypes'
 import { colorForType, FALLBACK_COLOR } from '../lib/foodTypeColors'
+import { entryVisibleByType } from '../lib/nutritionFilters'
 import AddFoodFlow from './AddFoodFlow'
 import AddIngredientModal from './AddIngredientModal'
 import LogEntryModal from './LogEntryModal'
@@ -99,12 +100,12 @@ function dotTooltip(e: LogEntry) {
   return `${time} · ${name}${amt}`
 }
 
-// Food types present in the given log window, each with its dot color, for the
-// legend. Appends a grey "No type" row when some entries have no type.
-function legendItems(
+// Food types present in the log (for filter chips), each with its dot color,
+// plus whether any untyped entries exist (the "No type" chip).
+function chipItems(
   entries: LogEntry[],
   foodTypes: Array<{ name: string; color: string | null }>,
-): { name: string; color: string }[] {
+): { items: { name: string; color: string }[]; hasUntyped: boolean } {
   const present = new Set<string>()
   let hasUntyped = false
   for (const e of entries) {
@@ -114,8 +115,7 @@ function legendItems(
   const items = foodTypes
     .filter(t => present.has(t.name))
     .map(t => ({ name: t.name, color: colorForType(t.name, foodTypes) }))
-  if (hasUntyped) items.push({ name: 'No type', color: FALLBACK_COLOR })
-  return items
+  return { items, hasUntyped }
 }
 
 export default function Nutrition() {
@@ -132,6 +132,17 @@ export default function Nutrition() {
   const [logView, setLogView] = useState<'timeline' | 'table'>('timeline')
   const [error, setError] = useState('')
   const { foodTypes } = useFoodTypes()
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
+  const [hideNoType, setHideNoType] = useState(false)
+  const [hideIncomplete, setHideIncomplete] = useState(false)
+
+  function toggleType(name: string) {
+    setHiddenTypes(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name); else next.add(name)
+      return next
+    })
+  }
 
   async function load() {
     try {
@@ -196,6 +207,45 @@ export default function Nutrition() {
             <button className={`${styles.subBtn} ${logView === 'table' ? styles.subBtnActive : ''}`}
               onClick={() => setLogView('table')}>Table</button>
           </div>
+          {(() => {
+            const { items, hasUntyped } = chipItems(log, foodTypes)
+            return (
+              <div className={styles.filterBar}>
+                <label className={styles.filterToggle}>
+                  <input
+                    type="checkbox"
+                    checked={hideIncomplete}
+                    onChange={e => setHideIncomplete(e.target.checked)}
+                  />
+                  Hide incomplete days
+                </label>
+                <div className={styles.chips}>
+                  {items.map(item => {
+                    const off = hiddenTypes.has(item.name)
+                    return (
+                      <button
+                        key={item.name}
+                        className={`${styles.chip} ${off ? styles.chipOff : ''}`}
+                        onClick={() => toggleType(item.name)}
+                      >
+                        <span className={styles.chipSwatch} style={{ background: item.color }} />
+                        {item.name}
+                      </button>
+                    )
+                  })}
+                  {hasUntyped && (
+                    <button
+                      className={`${styles.chip} ${hideNoType ? styles.chipOff : ''}`}
+                      onClick={() => setHideNoType(v => !v)}
+                    >
+                      <span className={styles.chipSwatch} style={{ background: FALLBACK_COLOR }} />
+                      No type
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
           {logView === 'table' ? (
             <LogTable log={log} foods={foods} onSaved={load} />
           ) : log.length === 0 ? (
@@ -250,6 +300,7 @@ export default function Nutrition() {
                     ))}
                     {day.dots.map(({ entry, min, level }) => {
                       const name = entry.food?.name ?? 'Unknown food'
+                      if (!entryVisibleByType(entry, hiddenTypes, hideNoType)) return null
                       const color = colorForType(entry.food?.type, foodTypes)
                       const dotClass = highlightFood
                         ? (name === highlightFood ? styles.dotActive : styles.dotDim)
@@ -288,19 +339,6 @@ export default function Nutrition() {
                   </li>
                 ))}
               </ul>
-              {legendItems(log, foodTypes).length > 0 && (
-                <>
-                  <p className={styles.sectionLabel}>Types</p>
-                  <ul className={styles.legend}>
-                    {legendItems(log, foodTypes).map(item => (
-                      <li key={item.name} className={styles.legendItem}>
-                        <span className={styles.legendSwatch} style={{ background: item.color }} />
-                        <span>{item.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
               {highlightFood && (
                 <button className={styles.clearHighlight} onClick={() => setHighlightFood(null)}>
                   Clear highlight

@@ -12,7 +12,8 @@ import { fetchTraining, trainingSegmentsForDay, trainingTooltip } from '../lib/t
 import type { TrainingSession } from '../lib/training'
 import { useFoodTypes } from '../lib/useFoodTypes'
 import { colorForType, FALLBACK_COLOR } from '../lib/foodTypeColors'
-import { entryVisibleByType } from '../lib/nutritionFilters'
+import { fetchIncompleteDays, setDayIncomplete } from '../lib/incompleteDays'
+import { entryVisibleByType, filterLog } from '../lib/nutritionFilters'
 import AddFoodFlow from './AddFoodFlow'
 import AddIngredientModal from './AddIngredientModal'
 import LogEntryModal from './LogEntryModal'
@@ -135,6 +136,7 @@ export default function Nutrition() {
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
   const [hideNoType, setHideNoType] = useState(false)
   const [hideIncomplete, setHideIncomplete] = useState(false)
+  const [incompleteDays, setIncompleteDays] = useState<Set<string>>(new Set())
 
   function toggleType(name: string) {
     setHiddenTypes(prev => {
@@ -173,11 +175,39 @@ export default function Nutrition() {
     } catch (e) {
       console.warn('Training data unavailable:', e)
     }
+    // Incomplete-day flags are best-effort: a missing table (migration not yet
+    // run) must never blank the timeline — the feature is simply inert.
+    try {
+      setIncompleteDays(await fetchIncompleteDays())
+    } catch (e) {
+      console.warn('Incomplete-day flags unavailable:', e)
+    }
   }
   useEffect(() => { load() }, [])
 
   function closeModal() { setModal(null); setEditEntry(null) }
   function afterSave() { closeModal(); load() }
+
+  async function toggleDayIncomplete(dayKey: string) {
+    const flagged = !incompleteDays.has(dayKey)
+    // Optimistic update.
+    setIncompleteDays(prev => {
+      const next = new Set(prev)
+      if (flagged) next.add(dayKey); else next.delete(dayKey)
+      return next
+    })
+    try {
+      await setDayIncomplete(dayKey, flagged)
+    } catch (e: any) {
+      // Roll back on failure.
+      setIncompleteDays(prev => {
+        const next = new Set(prev)
+        if (flagged) next.delete(dayKey); else next.add(dayKey)
+        return next
+      })
+      setError(e?.message ?? 'Could not update the incomplete flag.')
+    }
+  }
 
   async function handleDeleteEntry(entry: LogEntry): Promise<boolean> {
     if (!confirm('Delete this log entry?')) return false
@@ -247,7 +277,11 @@ export default function Nutrition() {
             )
           })()}
           {logView === 'table' ? (
-            <LogTable log={log} foods={foods} onSaved={load} />
+            <LogTable
+              log={filterLog(log, { hideIncomplete, incompleteDays, hiddenTypes, hideNoType })}
+              foods={foods}
+              onSaved={load}
+            />
           ) : log.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>🥗</div>
@@ -267,9 +301,22 @@ export default function Nutrition() {
                   ))}
                 </div>
               </div>
-              {groupByDay(log).map(day => (
+              {groupByDay(log)
+                .filter(day => !(hideIncomplete && incompleteDays.has(day.key)))
+                .map(day => {
+                const flagged = incompleteDays.has(day.key)
+                return (
                 <div key={day.key} className={styles.dayRow}>
-                  <div className={styles.dayLabel}>{day.label}</div>
+                  <div className={`${styles.dayLabel} ${flagged ? styles.dayLabelFlagged : ''}`}>
+                    <button
+                      className={styles.flagBtn}
+                      title={flagged ? 'Marked incomplete — click to clear' : 'Mark day incomplete'}
+                      onClick={() => toggleDayIncomplete(day.key)}
+                    >
+                      {flagged ? '⚠' : '⚑'}
+                    </button>
+                    {day.label}
+                  </div>
                   <div
                     className={styles.track}
                     style={{ paddingTop: 10 + day.maxLevel * 16 }}
@@ -321,7 +368,8 @@ export default function Nutrition() {
                     })}
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
 
             <aside className={styles.sidebar}>

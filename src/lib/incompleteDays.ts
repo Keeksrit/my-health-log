@@ -10,13 +10,16 @@ export async function fetchIncompleteDays(): Promise<Set<string>> {
   return new Set((data ?? []).map((r: { day: string }) => r.day))
 }
 
-// Toggle a day's flag. Insert when flagging, delete when clearing. Insert is
-// idempotent (primary key on day) — a duplicate flag is ignored, not an error.
+// Toggle a day's flag. Insert when flagging, delete when clearing. The
+// migration grants only select/insert/delete (no update) — RLS-only, no
+// update privilege — so flagging compiles to `ON CONFLICT (day) DO NOTHING`
+// via ignoreDuplicates, which only needs INSERT. An already-flagged day is
+// silently ignored, not an error.
 export async function setDayIncomplete(day: string, flagged: boolean): Promise<void> {
   if (flagged) {
     const { error } = await supabase
       .from('nutrition_incomplete_days')
-      .upsert({ day }, { onConflict: 'day' })
+      .upsert({ day }, { onConflict: 'day', ignoreDuplicates: true })
     if (error) throw error
   } else {
     const { error } = await supabase

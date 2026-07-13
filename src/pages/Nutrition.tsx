@@ -276,9 +276,14 @@ export default function Nutrition() {
               </div>
             )
           })()}
-          {logView === 'table' ? (
+          {(() => {
+            // Shared filtered set: drives both the Table view's rows and the
+            // sidebar's "Most logged" counts (per spec — the timeline/dots
+            // keep all days and hide per-entry visibility separately).
+            const filteredLog = filterLog(log, { hideIncomplete, incompleteDays, hiddenTypes, hideNoType })
+            return logView === 'table' ? (
             <LogTable
-              log={filterLog(log, { hideIncomplete, incompleteDays, hiddenTypes, hideNoType })}
+              log={filteredLog}
               foods={foods}
               onSaved={load}
             />
@@ -375,7 +380,7 @@ export default function Nutrition() {
             <aside className={styles.sidebar}>
               <p className={styles.sectionLabel}>Most logged</p>
               <ul className={styles.countList}>
-                {foodCounts(log).map(f => (
+                {foodCounts(filteredLog).map(f => (
                   <li key={f.name}>
                     <button
                       className={`${styles.countItem} ${highlightFood === f.name ? styles.countItemActive : ''}`}
@@ -394,7 +399,8 @@ export default function Nutrition() {
               )}
             </aside>
             </div>
-          )}
+          )
+          })()}
         </>
       ) : (
         <>

@@ -54,6 +54,25 @@ describe('parseCsv', () => {
   it('ignores a trailing newline', () => {
     expect(parseCsv('a,b\n')).toEqual([['a', 'b']])
   })
+
+  it('strips a leading UTF-8 BOM', () => {
+    expect(parseCsv('﻿id,food\n1,Vesi')).toEqual([['id', 'food'], ['1', 'Vesi']])
+  })
+
+  it('detects a semicolon delimiter (European Excel)', () => {
+    expect(parseCsv('id;food;amount\n1;Pasta Vapiano;2')).toEqual([
+      ['id', 'food', 'amount'],
+      ['1', 'Pasta Vapiano', '2'],
+    ])
+  })
+
+  it('detects a tab delimiter', () => {
+    expect(parseCsv('id\tfood\n1\tVesi')).toEqual([['id', 'food'], ['1', 'Vesi']])
+  })
+
+  it('still treats commas inside a semicolon file as literal text', () => {
+    expect(parseCsv('id;name\n1;a,b,c')).toEqual([['id', 'name'], ['1', 'a,b,c']])
+  })
 })
 
 describe('distinctIngredientTypes', () => {

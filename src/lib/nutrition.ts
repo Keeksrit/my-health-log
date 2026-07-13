@@ -4,7 +4,7 @@ import { INGREDIENT_TYPES } from '../types/nutrition'
 import type {
   IngredientCsvRow, FoodCsvRow, LogCsvRow, SyncMode,
 } from './nutritionCsv'
-import { computeSyncPlan, normalizeLogAmountUnit } from './nutritionCsv'
+import { computeSyncPlan, logsToInsert, normalizeLogAmountUnit, parseLocalDateTime } from './nutritionCsv'
 
 const db = createClient(
   import.meta.env.VITE_SUPABASE_URL as string,
@@ -22,7 +22,19 @@ export function matchFoodByIngredientSet(foods: Food[], ingredientIds: string[])
   return null
 }
 
+// Sniff the field separator from the first line so files exported by
+// European Excel (which uses ';', sometimes tab) import as well as our own ','.
+function detectDelimiter(text: string): string {
+  const firstLine = text.split(/\r?\n/, 1)[0] ?? ''
+  const counts = [',', ';', '\t'].map(d => [d, firstLine.split(d).length - 1] as const)
+  const best = counts.reduce((a, b) => (b[1] > a[1] ? b : a))
+  return best[1] > 0 ? best[0] : ','
+}
+
 export function parseCsv(text: string): string[][] {
+  // Strip a leading UTF-8 BOM (Excel prepends one) so the first cell is clean.
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1)
+  const delim = detectDelimiter(text)
   const rows: string[][] = []
   let field = ''
   let row: string[] = []
@@ -39,7 +51,7 @@ export function parseCsv(text: string): string[][] {
       field += ch; i++; continue
     }
     if (ch === '"') { inQuotes = true; i++; continue }
-    if (ch === ',') { row.push(field); field = ''; i++; continue }
+    if (ch === delim) { row.push(field); field = ''; i++; continue }
     if (ch === '\n' || ch === '\r') {
       // swallow \r\n as one break
       if (ch === '\r' && text[i + 1] === '\n') i++
@@ -257,7 +269,7 @@ export async function fetchLog(): Promise<LogEntry[]> {
 }
 
 export async function insertLogEntry(
-  input: { food_id: string; amount: number | null; unit: string | null; eaten_at: string }
+  input: { id?: string; food_id: string; amount: number | null; unit: string | null; eaten_at: string }
 ): Promise<void> {
   const { error } = await db.from('nutrition_consumption_log').insert(input)
   if (error) throw error
@@ -373,21 +385,24 @@ export async function syncLog(
   const sum = emptySummary()
   const existing = await fetchLog()
   const plan = computeSyncPlan(rows, existing.map(e => e.id), mode)
-  for (const r of plan.unknownIds) sum.skipped.push(`log row references unknown id "${r.id}"`)
 
   async function build(r: LogCsvRow): Promise<{ food_id: string; amount: number | null; unit: string | null; eaten_at: string }> {
     if (!r.food) throw new Error('empty food name')
     const { amount, unit } = normalizeLogAmountUnit(r.amount, r.unit, allowedUnits)
-    const when = r.eatenAt ? new Date(r.eatenAt) : new Date()
-    if (isNaN(when.getTime())) throw new Error(`bad date "${r.eatenAt}"`)
+    const when = r.eatenAt ? parseLocalDateTime(r.eatenAt) : new Date()
+    if (!when) throw new Error(`bad date "${r.eatenAt}"`)
     const food = await getOrCreateFoodByName(r.food)
     if (!food.ingredients?.length) sum.stubs.push(`food: ${food.name}`)
     return { food_id: food.id, amount, unit, eaten_at: when.toISOString() }
   }
 
-  for (const r of plan.inserts) {
-    try { await insertLogEntry(await build(r)); sum.inserted++ }
-    catch (e: any) { sum.skipped.push(`insert log "${r.food}": ${e?.message ?? 'error'}`) }
+  // Blank-id rows insert with a DB-generated id; unknown-id rows insert keeping
+  // their id so a full sync mirrors the file (export→import restores ids).
+  for (const { id, row } of logsToInsert(plan)) {
+    try {
+      await insertLogEntry(id ? { id, ...(await build(row)) } : await build(row))
+      sum.inserted++
+    } catch (e: any) { sum.skipped.push(`insert log "${row.food}": ${e?.message ?? 'error'}`) }
   }
   for (const r of plan.updates) {
     try { await updateLogEntry(r.id, await build(r)); sum.updated++ }

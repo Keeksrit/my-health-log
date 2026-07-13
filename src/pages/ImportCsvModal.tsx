@@ -111,7 +111,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
             <label className={formStyles.label}>MODE</label>
             <select className={formStyles.input} value={mode} onChange={e => setMode(e.target.value as SyncMode)}>
               <option value="add">Add new only — insert rows with a blank id, skip the rest</option>
-              <option value="sync">Full sync — update matched ids, insert blank ids, delete missing ids</option>
+              <option value="sync">Full sync — mirror the file: update matched ids, insert new rows, delete DB rows not in the file</option>
             </select>
 
             <label className={formStyles.label}>UPLOAD .CSV</label>

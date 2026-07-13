@@ -24,6 +24,22 @@ export function toCsv(headers: string[], rows: string[][]): string {
 
 function pad2(n: number): string { return String(n).padStart(2, '0') }
 
+// Parse a log entry's date-time string into a local Date.
+// Accepts our own ISO export (`2026-07-10T10:00`) and European Excel's
+// `DD.MM.YYYY HH:MM[:SS]`. Returns null for empty/unparseable input.
+export function parseLocalDateTime(s: string): Date | null {
+  const t = s.trim()
+  if (!t) return null
+  const eu = /^(\d{1,2})\.(\d{1,2})\.(\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(t)
+  if (eu) {
+    const [, d, mo, y, h, mi, se] = eu
+    const date = new Date(+y, +mo - 1, +d, +h, +mi, se ? +se : 0)
+    return isNaN(date.getTime()) ? null : date
+  }
+  const date = new Date(t)
+  return isNaN(date.getTime()) ? null : date
+}
+
 export function formatLocalDateTime(iso: string): string {
   const d = new Date(iso)
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}` +
@@ -114,4 +130,16 @@ export function computeSyncPlan<T extends { id: string }>(
   const fileIdSet = new Set(fileRows.map(r => r.id).filter(Boolean))
   const deletes = dbIds.filter(id => !fileIdSet.has(id))
   return { inserts, updates, unknownIds, deletes }
+}
+
+// Rows a log sync should create: blank-id rows get a DB-generated id; rows whose
+// id isn't in the DB (unknownIds) are inserted keeping that id, so the DB mirrors
+// the file exactly and an export→import round-trip preserves ids.
+export function logsToInsert(
+  plan: Pick<SyncPlan<LogCsvRow>, 'inserts' | 'unknownIds'>
+): { id?: string; row: LogCsvRow }[] {
+  return [
+    ...plan.inserts.map(row => ({ row })),
+    ...plan.unknownIds.map(row => ({ id: row.id, row })),
+  ]
 }

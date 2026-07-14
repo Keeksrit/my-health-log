@@ -1,0 +1,123 @@
+/* Break out of the 430px app frame to match the Nutrition page width.
+   position:fixed + left/right:0 + margin:auto centers a wide page and
+   scrolls internally between the fixed header and nav (a transform here
+   would trap the position:fixed lightbox rendered inside this page). */
+.page {
+  box-sizing: border-box;
+  position: fixed;
+  top: var(--header-h);
+  bottom: var(--nav-h);
+  left: 0;
+  right: 0;
+  width: min(100vw, 1290px);
+  margin: 0 auto;
+  overflow-y: auto;
+  padding: 16px 20px 24px;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink2);
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dropzoneActive {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+
+.hint { display: block; margin-top: 4px; font-size: 12px; color: var(--ink2); }
+
+.grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.tile {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+}
+
+.del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.placeholder { display: flex; align-items: center; justify-content: center; }
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty { margin-top: 20px; color: var(--ink2); font-size: 14px; text-align: center; }
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: zoom-out;
+}
+
+.lightboxImg { max-width: 92vw; max-height: 92vh; object-fit: contain; }
+
+.lightboxClose {
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}

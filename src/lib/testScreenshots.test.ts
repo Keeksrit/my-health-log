@@ -41,4 +41,14 @@ describe('sortByNewest', () => {
     expect(out).toEqual(['9-b.png', '5-a.png', 'weird.png'])
     expect(input).toEqual(['5-a.png', 'weird.png', '9-b.png'])
   })
+
+  it('treats a numeric name with no hyphen as no-prefix (sorts last)', () => {
+    expect(sortByNewest(['20260101', '300-c.png', '100-a.png']))
+      .toEqual(['300-c.png', '100-a.png', '20260101'])
+  })
+
+  it('treats a name starting with a hyphen as no-prefix (sorts last)', () => {
+    expect(sortByNewest(['-x.png', '300-c.png', '100-a.png']))
+      .toEqual(['300-c.png', '100-a.png', '-x.png'])
+  })
 })

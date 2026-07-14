@@ -1,5 +1,3 @@
-import { supabase } from './supabase'
-
 export const BUCKET = 'test-screenshots'
 
 const EXT_RE = /^[a-z0-9]{1,5}$/
@@ -23,7 +21,9 @@ export function buildFileName(originalName: string, timestamp: number, rand: str
 /** New array sorted newest-first by the numeric prefix before the first '-'. */
 export function sortByNewest(names: string[]): string[] {
   const ts = (n: string): number => {
-    const num = Number(n.slice(0, n.indexOf('-')))
+    const idx = n.indexOf('-')
+    if (idx <= 0) return -Infinity
+    const num = Number(n.slice(0, idx))
     return Number.isFinite(num) ? num : -Infinity
   }
   return names

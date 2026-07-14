@@ -26,6 +26,10 @@ export default function BottomNav() {
         <span className={styles.icon}>🥗</span>
         <span className={styles.label}>Nutrition</span>
       </NavLink>
+      <NavLink to="/tests"        className={({ isActive }) => `${styles.btn} ${isActive ? styles.active : ''}`}>
+        <span className={styles.icon}>🧪</span>
+        <span className={styles.label}>Tests</span>
+      </NavLink>
       <button className={`${styles.btn} ${styles.symptomBtn}`} onClick={() => navigate('/log')}>
         <span className={styles.icon}>🩹</span>
         <span className={styles.label}>Symptom</span>

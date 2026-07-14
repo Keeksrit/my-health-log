@@ -102,15 +102,15 @@ export default function Tests() {
       {shots.length === 0 && pending === 0 && !uploading ? (
         <p className={styles.empty}>No screenshots yet.</p>
       ) : (
-        <div className={styles.grid}>
+        <div className={styles.stack}>
           {Array.from({ length: pending }).map((_, i) => (
-            <div key={`p${i}`} className={`${styles.tile} ${styles.placeholder}`}>
+            <div key={`p${i}`} className={styles.placeholder}>
               <div className={styles.spinner} />
             </div>
           ))}
           {shots.map((s) => (
-            <div key={s.path} className={styles.tile}>
-              <img className={styles.thumb} src={s.url} alt="" onClick={() => setZoom(s.url)} />
+            <div key={s.path} className={styles.item}>
+              <img className={styles.photo} src={s.url} alt="" onClick={() => setZoom(s.url)} />
               <button className={styles.del} onClick={() => remove(s.path)} aria-label="Delete">×</button>
             </div>
           ))}

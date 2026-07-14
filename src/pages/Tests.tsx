@@ -5,6 +5,7 @@ import styles from './Tests.module.css'
 export default function Tests() {
   const [shots, setShots] = useState<Screenshot[]>([])
   const [pending, setPending] = useState(0) // in-flight upload count
+  const [uploading, setUploading] = useState(false) // true until a batch (incl. reload) settles
   const [dragging, setDragging] = useState(false)
   const [zoom, setZoom] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -23,19 +24,24 @@ export default function Tests() {
   const handleFiles = useCallback(async (files: File[]) => {
     const images = files.filter((f) => f.type.startsWith('image/'))
     if (images.length === 0) return
+    setUploading(true)
     setPending((n) => n + images.length)
-    await Promise.all(
-      images.map(async (f) => {
-        try {
-          await uploadScreenshot(f)
-        } catch (e) {
-          console.warn('uploadScreenshot failed', e)
-        } finally {
-          setPending((n) => Math.max(0, n - 1))
-        }
-      }),
-    )
-    await reload()
+    try {
+      await Promise.all(
+        images.map(async (f) => {
+          try {
+            await uploadScreenshot(f)
+          } catch (e) {
+            console.warn('uploadScreenshot failed', e)
+          } finally {
+            setPending((n) => Math.max(0, n - 1))
+          }
+        }),
+      )
+      await reload()
+    } finally {
+      setUploading(false)
+    }
   }, [reload])
 
   // Paste screenshots from clipboard.
@@ -69,7 +75,10 @@ export default function Tests() {
 
       <div
         className={`${styles.dropzone} ${dragging ? styles.dropzoneActive : ''}`}
+        role="button"
+        tabIndex={0}
         onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inputRef.current?.click() } }}
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
@@ -90,7 +99,7 @@ export default function Tests() {
         }}
       />
 
-      {shots.length === 0 && pending === 0 ? (
+      {shots.length === 0 && pending === 0 && !uploading ? (
         <p className={styles.empty}>No screenshots yet.</p>
       ) : (
         <div className={styles.grid}>
@@ -110,7 +119,7 @@ export default function Tests() {
 
       {zoom && (
         <div className={styles.lightbox} onClick={() => setZoom(null)}>
-          <button className={styles.lightboxClose} aria-label="Close">×</button>
+          <button className={styles.lightboxClose} aria-label="Close" onClick={() => setZoom(null)}>×</button>
           <img className={styles.lightboxImg} src={zoom} alt="" />
         </div>
       )}

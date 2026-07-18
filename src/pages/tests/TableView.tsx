@@ -10,7 +10,7 @@ function outOfRange(num: number | null, min: number | null, max: number | null):
 }
 
 export function TableView(
-  { sessions, descriptions }: { sessions: LabSession[]; descriptions: AnalyteDescription[] },
+  { sessions, descriptions, onDelete }: { sessions: LabSession[]; descriptions: AnalyteDescription[]; onDelete: (id: string) => void },
 ) {
   // Analyte rows in first-seen order across all sessions (newest-first).
   const analytes: string[] = []
@@ -29,7 +29,18 @@ export function TableView(
           <tr>
             <th className={styles.analyteCol}>Analyte</th>
             {sessions.map(s => (
-              <th key={s.id}>{new Date(s.taken_at).toLocaleDateString()}</th>
+              <th key={s.id}>
+                <div className={styles.colHead}>
+                  <span>{new Date(s.taken_at).toLocaleDateString()}</span>
+                  <button
+                    className={styles.delCol}
+                    onClick={() => {
+                      if (window.confirm(`Delete the ${new Date(s.taken_at).toLocaleDateString()} session and all its results?`)) onDelete(s.id)
+                    }}
+                    aria-label={`Delete ${new Date(s.taken_at).toLocaleDateString()} session`}
+                  >×</button>
+                </div>
+              </th>
             ))}
           </tr>
         </thead>

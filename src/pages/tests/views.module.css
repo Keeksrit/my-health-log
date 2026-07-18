@@ -19,3 +19,6 @@
 .dotBad { fill: var(--red); stroke: var(--card); stroke-width: 1; }
 .strip { display: flex; flex-wrap: wrap; gap: 6px; }
 .verdictDot { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink2); }
+.colHead { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.delCol { background: none; border: none; color: var(--ink2); cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; }
+.delCol:hover { color: var(--red); }

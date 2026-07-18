@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchSessions, type LabSession } from '../lib/lab'
+import { fetchSessions, deleteSession, type LabSession } from '../lib/lab'
 import { fetchEvents, type LabEvent } from '../lib/labEvents'
 import { useLabDescriptions } from '../lib/useLabDescriptions'
 import ImportModal from './tests/ImportModal'
@@ -21,6 +21,11 @@ export default function Tests() {
     try { setEvents(await fetchEvents()) } catch (e) { console.warn('fetchEvents failed', e); setEvents([]) }
   }, [])
 
+  const handleDelete = useCallback(async (id: string) => {
+    try { await deleteSession(id); await reload() }
+    catch (e) { console.warn('deleteSession failed', e) }
+  }, [reload])
+
   useEffect(() => { reload() }, [reload])
 
   return (
@@ -36,7 +41,7 @@ export default function Tests() {
 
       {view === 'graph'
         ? <GraphView sessions={sessions} events={events} descriptions={descriptions} />
-        : <TableView sessions={sessions} descriptions={descriptions} />}
+        : <TableView sessions={sessions} descriptions={descriptions} onDelete={handleDelete} />}
 
       {importing && (
         <ImportModal

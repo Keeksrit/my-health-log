@@ -26,8 +26,10 @@ function buildSeries(sessions: LabSession[]): AnalyteSeries[] {
         ser = { analyte: r.analyte, numeric: [], qualitative: [], refMin: r.ref_min, refMax: r.ref_max }
         map.set(r.analyte, ser)
       }
-      if (ser.refMin == null) ser.refMin = r.ref_min
-      if (ser.refMax == null) ser.refMax = r.ref_max
+      // Newest session's ref wins (ordered is ascending), so a changed
+      // reference range tracks the latest visit rather than the oldest.
+      if (r.ref_min != null) ser.refMin = r.ref_min
+      if (r.ref_max != null) ser.refMax = r.ref_max
       if (r.result_num != null) {
         const bad = (r.ref_min != null && r.result_num < r.ref_min) || (r.ref_max != null && r.result_num > r.ref_max)
         ser.numeric.push({ t, v: r.result_num, raw: r.result_raw, bad })
@@ -86,6 +88,15 @@ export function GraphView(
                 </circle>
               ))}
             </svg>
+            {ser.qualitative.length > 0 && (
+              <div className={styles.strip}>
+                {ser.qualitative.map((q, i) => (
+                  <span key={i} className={styles.verdictDot} title={`${new Date(q.t).toLocaleDateString()} · ${q.raw}${q.verdict ? ` · ${q.verdict}` : ''}`}>
+                    {q.verdict ?? q.raw}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )
       })}

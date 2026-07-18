@@ -49,12 +49,20 @@ export default function ImportModal({ onClose, onSaved }: { onClose: () => void;
     if (!toSave.length) { onClose(); return }
     setSaving(true)
     setError(null)
+    const savedIds = new Set<string>()
     const failures: string[] = []
     for (const s of toSave) {
-      try { await saveSession(s) } catch (e: any) { failures.push(`${s.sample_id}: ${e?.message ?? 'save failed'}`) }
+      try { await saveSession(s); savedIds.add(s.sample_id) }
+      catch (e: any) { failures.push(`${s.sample_id}: ${e?.message ?? 'save failed'}`) }
     }
     setSaving(false)
-    if (failures.length) { setError(failures.join('; ')); return }
+    if (failures.length) {
+      // Drop the sessions that actually saved so a retry only resubmits failures
+      // (re-submitting a saved session would hit the duplicate-sample_id error).
+      setEntries(prev => prev.filter(e => !(e.session && savedIds.has(e.session.sample_id))))
+      setError(`Saved ${savedIds.size}. Failed — ${failures.join('; ')}`)
+      return
+    }
     onSaved()
   }
 

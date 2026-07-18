@@ -1,0 +1,25 @@
+.backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px;
+}
+.modal {
+  background: var(--card); color: var(--ink); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; width: min(100%, 640px); max-height: 90vh;
+  overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+}
+.header { display: flex; align-items: center; justify-content: space-between; }
+.close { background: none; border: none; color: var(--ink2); font-size: 22px; cursor: pointer; }
+.hint { color: var(--ink2); font-size: 13px; margin: 0; }
+.paste { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 12px;
+  background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.actions { display: flex; justify-content: flex-end; }
+.add, .doneBtn { background: var(--accent); color: #fff; border: none; border-radius: 8px;
+  padding: 8px 14px; cursor: pointer; }
+.add:disabled, .doneBtn:disabled { opacity: 0.5; cursor: default; }
+.log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px;
+  font-size: 13px; max-height: 200px; overflow-y: auto; }
+.log li { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); }
+.ok { border-left: 3px solid var(--accent); }
+.dup { color: var(--ink2); }
+.error { color: var(--red); }
+.footer { display: flex; justify-content: flex-end; }

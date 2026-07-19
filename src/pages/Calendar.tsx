@@ -3,6 +3,7 @@ import type { Entry } from '../types'
 import { dateKey, todayKey, fmtDateLong, uid } from '../lib/utils'
 import { insertEntry } from '../lib/supabase'
 import EntryCard from '../components/ui/EntryCard'
+import Icon from '../components/ui/Icon'
 import DuplicateDayModal from './DuplicateDayModal'
 import styles from './Calendar.module.css'
 
@@ -90,7 +91,7 @@ export default function Calendar({ entries, onReload }: Props) {
             <p className={styles.sec}>{fmtDateLong(selected)}</p>
             {selEntries.length > 0 && (
               <button className={styles.dupDayBtn} onClick={() => setDupOpen(true)}>
-                ⎘ Duplicate day
+                <Icon name="copy" size={14} /> Duplicate day
               </button>
             )}
           </div>

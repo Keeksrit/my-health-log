@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { MedicationSchedule } from '../types/medication'
+import Loader from '../components/ui/Loader'
+import Icon from '../components/ui/Icon'
 import { fetchSchedulesWithTypes } from '../lib/medication'
 import AddMedicationFlow from './AddMedicationFlow'
 import EditMedicationModal from './EditMedicationModal'
@@ -36,10 +38,10 @@ export default function Medications() {
       </div>
 
       {loading ? (
-        <p className={styles.empty}>Loading…</p>
+        <Loader />
       ) : schedules.length === 0 ? (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>💊</div>
+          <div className={styles.emptyIcon}><Icon name="meds" size={40} /></div>
           <h2>No medications yet</h2>
           <p>Tap + Add to set up your first medication schedule.</p>
         </div>

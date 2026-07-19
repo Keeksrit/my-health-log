@@ -2,13 +2,13 @@
 .chip {
   display: inline-flex; align-items: center; gap: 4px;
   background: var(--accent-l); color: var(--accent);
-  border-radius: 12px; padding: 2px 8px; font-size: 12px;
+  border-radius: var(--radius-pill); padding: 2px 8px; font-size: var(--fs-caption);
 }
-.chipRemove { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 13px; padding: 0; }
+.chipRemove { background: none; border: none; color: var(--accent); cursor: pointer; font-size: var(--fs-meta); padding: 0; }
 .ingEditor { position: relative; }
 .suggestions {
-  position: absolute; z-index: 5; left: 0; right: 0; top: 100%;
-  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  position: absolute; z-index: var(--z-dropdown); left: 0; right: 0; top: 100%;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
   margin-top: 2px; max-height: 180px; overflow-y: auto;
 }
 .suggestion {
@@ -16,4 +16,4 @@
   padding: 6px 9px; font: inherit; color: var(--ink); cursor: pointer;
 }
 .suggestion:hover { background: var(--accent-l); }
-.ingList { font-size: 13px; color: var(--ink2); }
+.ingList { font-size: var(--fs-meta); color: var(--ink2); }

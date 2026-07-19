@@ -13,13 +13,13 @@
   background: var(--bg);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--z-sticky);
 }
 
 .backBtn {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: var(--fs-headline);
   color: var(--ink2);
   padding: 2px 4px;
   line-height: 1;
@@ -30,13 +30,13 @@
 .titleBlock { flex: 1; }
 
 .title {
-  font-size: 18px;
+  font-size: var(--fs-headline);
   font-weight: 600;
   color: var(--ink);
 }
 
 .subtitle {
-  font-size: 12px;
+  font-size: var(--fs-caption);
   color: var(--ink2);
   margin-top: 2px;
   font-family: 'DM Sans', sans-serif;
@@ -44,7 +44,7 @@
 
 .loading {
   padding: 20px;
-  font-size: 14px;
+  font-size: var(--fs-body);
   color: var(--ink2);
 }
 
@@ -59,7 +59,7 @@
   align-items: center;
   padding: 10px 0 6px;
   border-bottom: 1px solid var(--border);
-  font-size: 10px;
+  font-size: var(--fs-label);
   font-weight: 600;
   color: var(--ink3);
   letter-spacing: 0.07em;
@@ -67,7 +67,7 @@
   position: sticky;
   top: 0;
   background: var(--bg);
-  z-index: 5;
+  z-index: var(--z-dropdown);
 }
 
 .row {
@@ -86,7 +86,7 @@
 .colStatus { width: 12px; flex-shrink: 0; }
 
 .dateText {
-  font-size: 13px;
+  font-size: var(--fs-meta);
   color: var(--ink);
 }
 
@@ -107,10 +107,10 @@
 .stepBtn {
   width: 26px;
   height: 22px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg);
-  font-size: 13px;
+  font-size: var(--fs-meta);
   font-weight: 600;
   color: var(--ink2);
   display: flex;
@@ -128,7 +128,7 @@
 }
 
 .timeSegment {
-  font-size: 15px;
+  font-size: var(--fs-title);
   font-weight: 600;
   color: var(--ink);
   min-width: 24px;
@@ -148,8 +148,8 @@
   width: 100%;
   padding: 6px 8px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-body);
   color: var(--ink);
   background: var(--bg);
   text-align: center;
@@ -187,10 +187,10 @@
 .saveBar {
   width: 100%;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   border: none;
   font-family: 'Lora', serif;
-  font-size: 17px;
+  font-size: var(--fs-earned);
   background: var(--border);
   color: var(--ink3);
   transition: all 0.2s;

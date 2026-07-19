@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Food, LogEntry } from '../types/nutrition'
+import Icon from '../components/ui/Icon'
 import { useUnits } from '../lib/useUnits'
 import { useEditableRows } from '../lib/useEditableRows'
 import { updateLogEntries, deleteLogEntry, splitDateTime, combineDateTime } from '../lib/nutrition'
@@ -79,7 +80,7 @@ export default function LogTable({ log, foods, onSaved }: Props) {
           ) : (
             <>
               {log.length > 0 && <button className={styles.tableBtn} onClick={t.begin}>Edit</button>}
-              <button className={styles.tableBtn} onClick={() => downloadCsv('log.csv', logToCsv(log))}>⬇ Export</button>
+              <button className={styles.tableBtn} onClick={() => downloadCsv('log.csv', logToCsv(log))}><Icon name="download" size={14} /> Export</button>
             </>
           )}
         </div>

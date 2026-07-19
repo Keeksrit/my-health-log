@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Ingredient } from '../types/nutrition'
+import Icon from '../components/ui/Icon'
 import { INGREDIENT_TYPES } from '../types/nutrition'
 import { useEditableRows } from '../lib/useEditableRows'
 import { updateIngredient, deleteIngredient } from '../lib/nutrition'
@@ -45,7 +46,7 @@ export default function IngredientsTable({ ingredients, onSaved }: Props) {
           ) : (
             <>
               {ingredients.length > 0 && <button className={styles.tableBtn} onClick={t.begin}>Edit</button>}
-              <button className={styles.tableBtn} onClick={() => downloadCsv('ingredients.csv', ingredientsToCsv(ingredients))}>⬇ Export</button>
+              <button className={styles.tableBtn} onClick={() => downloadCsv('ingredients.csv', ingredientsToCsv(ingredients))}><Icon name="download" size={14} /> Export</button>
             </>
           )}
         </div>

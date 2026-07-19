@@ -4,6 +4,7 @@ import { fetchEntries } from './lib/supabase'
 import type { Entry } from './types'
 import Header from './components/layout/Header'
 import BottomNav from './components/layout/BottomNav'
+import Loader from './components/ui/Loader'
 import Stats from './pages/Stats'
 import Today from './pages/Today'
 import Calendar from './pages/Calendar'
@@ -36,10 +37,7 @@ export default function App() {
       <Header />
       <main className={styles.main}>
         {loading ? (
-          <div className={styles.loader}>
-            <div className={styles.spinner} />
-            <p>Loading…</p>
-          </div>
+          <Loader />
         ) : (
           <Routes>
             <Route path="/"          element={<Navigate to="/stats" replace />} />

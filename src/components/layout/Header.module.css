@@ -5,7 +5,7 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 430px;
-  z-index: 50;
+  z-index: var(--z-nav);
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   padding: 48px 20px 12px;
@@ -13,14 +13,14 @@
 }
 
 .title {
-  font-size: 22px;
+  font-size: var(--fs-display);
   font-weight: 600;
   color: var(--ink);
   letter-spacing: -0.3px;
 }
 
 .date {
-  font-size: 12px;
+  font-size: var(--fs-caption);
   color: var(--ink2);
   margin-top: 2px;
   font-family: 'DM Sans', sans-serif;
@@ -37,15 +37,15 @@
   flex-shrink: 0;
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--fs-meta);
   color: var(--ink2);
 }
 
 .actions { display: flex; align-items: center; gap: .5rem; }
 .settings {
-  color: var(--ink2); text-decoration: none; font-size: .9rem;
-  padding: .4rem .6rem; border-radius: 6px;
+  color: var(--ink2); text-decoration: none; font-size: var(--fs-body);
+  padding: .4rem .6rem; border-radius: var(--radius-sm);
 }
 .settings:hover { color: var(--ink); }

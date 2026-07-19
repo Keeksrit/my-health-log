@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
 import styles from './Login.module.css'
+import Icon from '../ui/Icon'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -21,7 +22,7 @@ export default function Login() {
   return (
     <div className={styles.wrap}>
       <form onSubmit={handleSubmit} className={styles.card}>
-        <div className={styles.brand}>🩺 My Health Log</div>
+        <div className={styles.brand}><Icon name="brand" size={20} /> My Health Log</div>
         <label className={styles.label}>Email</label>
         <input
           type="email"

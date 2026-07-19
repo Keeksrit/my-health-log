@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 import Login from './Login'
+import Loader from '../ui/Loader'
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
@@ -20,18 +21,7 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   }, [])
 
   if (checking) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg)',
-        color: 'var(--ink2)',
-      }}>
-        Loading…
-      </div>
-    )
+    return <Loader />
   }
 
   if (!session) return <Login />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useUnits } from '../lib/useUnits'
+import Icon from '../components/ui/Icon'
 import { addUnit, deleteUnit } from '../lib/units'
 import { useFoodTypes } from '../lib/useFoodTypes'
 import { addFoodType, deleteFoodType, updateFoodTypeColor } from '../lib/foodTypes'
@@ -195,8 +196,8 @@ function LabDescriptionsSection() {
       <h2 className={styles.heading}>Analyte descriptions</h2>
       <p className={styles.hint}>What each analyte means. Shown in the Tests table &amp; charts. Edit here or via CSV.</p>
       <div className={styles.addRow}>
-        <button className={styles.add} type="button" onClick={handleExport}>⬇ Export CSV</button>
-        <button className={styles.add} type="button" onClick={() => fileRef.current?.click()}>⬆ Import CSV (sync)</button>
+        <button className={styles.add} type="button" onClick={handleExport}><Icon name="download" size={14} /> Export CSV</button>
+        <button className={styles.add} type="button" onClick={() => fileRef.current?.click()}><Icon name="upload" size={14} /> Import CSV (sync)</button>
         <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={handleImport} />
       </div>
       <ul className={styles.list}>

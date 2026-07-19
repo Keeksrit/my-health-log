@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-19T00:00:00Z",
+  "title": "Design System: Health Log",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Forest Green",
+        "canonical": "#3D6B4F",
+        "tonalRamp": ["oklch(24% 0.05 155)", "oklch(32% 0.06 155)", "oklch(40% 0.07 155)", "oklch(48% 0.08 155)", "oklch(56% 0.08 155)", "oklch(66% 0.07 155)", "oklch(80% 0.05 155)", "oklch(94% 0.02 155)"]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Cream Canvas",
+        "canonical": "#F5F1EB",
+        "tonalRamp": ["oklch(22% 0.008 70)", "oklch(34% 0.008 70)", "oklch(46% 0.008 70)", "oklch(58% 0.01 70)", "oklch(70% 0.012 70)", "oklch(82% 0.014 70)", "oklch(92% 0.012 70)", "oklch(96.5% 0.01 70)"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["oklch(20% 0 0)", "oklch(32% 0 0)", "oklch(44% 0 0)", "oklch(56% 0 0)", "oklch(68% 0 0)", "oklch(80% 0 0)", "oklch(92% 0 0)", "oklch(100% 0 0)"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1C1A17",
+        "tonalRamp": ["oklch(18% 0.006 70)", "oklch(28% 0.006 70)", "oklch(40% 0.006 70)", "oklch(52% 0.006 70)", "oklch(64% 0.006 70)", "oklch(76% 0.006 70)", "oklch(88% 0.006 70)", "oklch(96% 0.006 70)"]
+      },
+      "amber": {
+        "role": "secondary",
+        "displayName": "Amber",
+        "canonical": "#C4752A",
+        "tonalRamp": ["oklch(28% 0.06 60)", "oklch(38% 0.08 60)", "oklch(48% 0.1 60)", "oklch(58% 0.12 60)", "oklch(66% 0.13 60)", "oklch(76% 0.1 60)", "oklch(86% 0.06 60)", "oklch(95% 0.03 60)"]
+      },
+      "red": {
+        "role": "tertiary",
+        "displayName": "Clay Red",
+        "canonical": "#B83A3A",
+        "tonalRamp": ["oklch(26% 0.08 25)", "oklch(36% 0.11 25)", "oklch(46% 0.14 25)", "oklch(54% 0.16 25)", "oklch(62% 0.16 25)", "oklch(74% 0.12 25)", "oklch(85% 0.07 25)", "oklch(95% 0.03 25)"]
+      }
+    },
+    "typographyMeta": {
+      "numeral": { "displayName": "Numeral (Lora)", "purpose": "Single hero stat figure only; 32px." },
+      "display": { "displayName": "Display (Lora)", "purpose": "Persistent app header title; 22px." },
+      "headline": { "displayName": "Headline (Lora)", "purpose": "All page / sheet / modal / empty-state titles; 20px." },
+      "earned": { "displayName": "Earned (Lora)", "purpose": "Primary save / continue action button; 17px." },
+      "title": { "displayName": "Title (DM Sans)", "purpose": "List-row headings, entry names, input text; 15px/500." },
+      "body": { "displayName": "Body (DM Sans)", "purpose": "Base body and descriptions; 14px; cap prose at 65–75ch." },
+      "meta": { "displayName": "Meta (DM Sans)", "purpose": "Secondary body — notes, helpers, small text buttons/links; 13px." },
+      "caption": { "displayName": "Caption (DM Sans)", "purpose": "Timestamps, tags, badges, pills; 12px." },
+      "label": { "displayName": "Label (DM Sans)", "purpose": "Tracked-uppercase functional field labels & table headers only; 10px." }
+    },
+    "shadows": [
+      { "name": "whisper", "value": "0 1px 3px rgba(0,0,0,0.04)", "purpose": "Resting lift on the login card and, optionally, primary interactive surfaces." },
+      { "name": "overlay", "value": "0 -8px 40px rgba(0,0,0,0.12)", "purpose": "Bottom sheets and modals floating above the page, paired with a scrim." }
+    ],
+    "motion": [
+      { "name": "ease-state", "value": "150ms ease", "purpose": "Default color/state transitions on buttons, nav, chips." },
+      { "name": "sheet-slide", "value": "250ms ease", "purpose": "Bottom sheet slide-up entrance (translateY 50px + fade)." }
+    ],
+    "breakpoints": [
+      { "name": "hand", "value": "430px", "purpose": "The single hand-held column max-width; the app does not expand beyond this." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid forest-green action; the confident, committed choice on a sheet or flow.",
+      "html": "<button class=\"ds-btn-primary\">Save entry</button>",
+      "css": ".ds-btn-primary { background: #3D6B4F; color: #fff; padding: 12px 32px; border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; transition: background .15s ease, transform .15s ease; } .ds-btn-primary:hover { background: #2F5340; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid #3D6B4F; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: .6; cursor: default; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Low-emphasis / cancel action: hairline border, muted ink, no fill.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { background: none; color: #6E6A62; padding: 12px; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; transition: color .15s ease, border-color .15s ease; } .ds-btn-secondary:hover { color: #1C1A17; border-color: rgba(0,0,0,0.16); } .ds-btn-secondary:focus-visible { outline: 2px solid #3D6B4F; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Canvas-fill field with a hairline border; focus turns the border forest green, no glow.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Note</span><input class=\"ds-input\" type=\"text\" placeholder=\"How did it feel?\" /></label>",
+      "css": ".ds-field { display: block; } .ds-field-label { display: block; font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #6E6A62; margin-bottom: 8px; } .ds-input { width: 100%; padding: 12px 14px; background: #F5F1EB; color: #1C1A17; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; transition: border-color .15s ease; } .ds-input::placeholder { color: #8f887e; } .ds-input:focus { border-color: #3D6B4F; }"
+    },
+    {
+      "name": "Entry Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat white record card with a hairline border; a location pill and severity dots ride along the row.",
+      "html": "<article class=\"ds-card\"><div class=\"ds-card-row\"><div class=\"ds-card-main\"><span class=\"ds-card-name\">Headache</span><span class=\"ds-pill\">Temple, left</span></div><div class=\"ds-dots\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i></div></div><p class=\"ds-card-note\">Dull, came on after lunch.</p></article>",
+      "css": ".ds-card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 14px; padding: 14px; font-family: 'DM Sans', sans-serif; } .ds-card-row { display: flex; align-items: flex-start; gap: 8px; } .ds-card-main { flex: 1; display: flex; flex-direction: column; gap: 5px; align-items: flex-start; } .ds-card-name { font-size: 15px; font-weight: 500; color: #1C1A17; } .ds-pill { display: inline-flex; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #E3EFE8; color: #3D6B4F; } .ds-card-note { font-size: 13px; line-height: 1.5; color: #6E6A62; margin-top: 7px; } .ds-dots { display: flex; gap: 4px; } .ds-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(0,0,0,0.08); } .ds-dots i.on { background: #C4752A; }"
+    },
+    {
+      "name": "Severity Dots",
+      "kind": "custom",
+      "refersTo": "severity-dots",
+      "description": "Five dots encoding a 1–5 value by count filled AND color band (green 1–2, amber 3, red 4–5). Dual encoding is mandatory.",
+      "html": "<div class=\"ds-sev\" role=\"img\" aria-label=\"Severity 4 of 5\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i></div>",
+      "css": ".ds-sev { display: flex; gap: 4px; align-items: center; } .ds-sev i { width: 9px; height: 9px; border-radius: 50%; background: rgba(0,0,0,0.08); } .ds-sev i.on { background: #B83A3A; }"
+    },
+    {
+      "name": "Bottom Nav",
+      "kind": "nav",
+      "refersTo": "bottom-nav",
+      "description": "Fixed hand-held tab bar; inactive faint ink, active label forest green, emphasized symptom action.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item\"><span class=\"ds-nav-icon\">◉</span><span class=\"ds-nav-label\">Stats</span></a><a class=\"ds-nav-item active\"><span class=\"ds-nav-icon\">◉</span><span class=\"ds-nav-label\">Today</span></a><a class=\"ds-nav-item symptom\"><span class=\"ds-nav-icon\">+</span><span class=\"ds-nav-label\">Log</span></a></nav>",
+      "css": ".ds-nav { display: flex; background: #fff; border-top: 1px solid rgba(0,0,0,0.08); height: 64px; max-width: 430px; font-family: 'DM Sans', sans-serif; } .ds-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #B2ADA4; text-decoration: none; transition: color .15s ease; } .ds-nav-icon { font-size: 20px; line-height: 1; } .ds-nav-label { font-size: 10px; font-weight: 500; } .ds-nav-item.active .ds-nav-label, .ds-nav-item.active .ds-nav-icon { color: #3D6B4F; } .ds-nav-item.symptom { flex: 1.3; background: #3D6B4F; color: #fff; border-top-left-radius: 14px; } .ds-nav-item.symptom .ds-nav-label { font-weight: 700; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lab Notebook",
+    "overview": "Health Log is a scientist's personal notebook rendered for the phone: warm cream paper, hairline rules keeping order, and data captured in a form you can reason over months later. Calm but rigorous — reassuring enough to open every day, honest enough that a clinician can trust it cold. One forest green does all the work; amber and red enter only when the data turns serious. Lora warms the few headings; DM Sans carries every label, field, and number inside a fixed 430px hand-held column.",
+    "keyCharacteristics": [
+      "Warm cream paper (#F5F1EB), never a blue-white clinical surface.",
+      "One forest-green accent (#3D6B4F) carries actions, selection, and calm-severity.",
+      "Two voices: Lora serif for headings, DM Sans for all UI and data.",
+      "Flat by default; depth is earned, not sprinkled.",
+      "Meaning is always carried by more than color — shape, count, position, label.",
+      "A single 430px hand-held column; density serves the data, not the screen."
+    ],
+    "rules": [
+      { "name": "The One Green Rule", "body": "A single forest green carries every affordance that means 'act' or 'selected.' Never decorative.", "section": "colors" },
+      { "name": "The Categorical Set is Not the Palette", "body": "Food-type dots draw from a separate 10-color categorical set. These are data encodings, not brand colors, and must never leak into chrome, buttons, or type.", "section": "colors" },
+      { "name": "The Serif is a Guest", "body": "Lora appears only in headings and rare intentional moments; never labels, data, numbers, or buttons.", "section": "typography" },
+      { "name": "The Earned-Depth Rule", "body": "Surfaces are flat at rest. A shadow must justify itself as an overlay or a direct response to interaction.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the cream canvas (#F5F1EB) as the ground and one forest green (#3D6B4F) as the only working accent.",
+      "Do back every color-coded signal with a second cue — count, shape, icon, position, or label.",
+      "Do reserve Lora for headings and rare earned moments; run all labels, data, and numbers in DM Sans.",
+      "Do keep surfaces flat with hairline borders; add depth only for overlays or a genuine interaction response.",
+      "Do meet WCAG AA contrast including muted and placeholder text.",
+      "Do make it feel considered — 'not boring' is a requirement, not a nicety."
+    ],
+    "donts": [
+      "Don't let it feel boring, generic, or forgettable.",
+      "Don't drift toward a cold, sterile clinical EMR look.",
+      "Don't rely on color as the only signal for severity, food type, or status.",
+      "Don't use the forest green decoratively.",
+      "Don't let categorical food-type colors leak into chrome, buttons, or type.",
+      "Don't use border-left/border-right >1px as a colored accent stripe.",
+      "Don't nest cards, and don't add a tracked-uppercase eyebrow above every section."
+    ]
+  }
+}

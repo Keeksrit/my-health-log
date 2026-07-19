@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Food, Ingredient, LogEntry } from '../types/nutrition'
+import Loader from '../components/ui/Loader'
+import Icon from '../components/ui/Icon'
 import {
   fetchFoodsWithIngredients,
   fetchIngredients,
@@ -225,7 +227,7 @@ export default function Nutrition() {
       {error && <p className={styles.empty} style={{ color: 'var(--danger, #B83A3A)' }}>{error}</p>}
 
       {loading ? (
-        <p className={styles.empty}>Loading…</p>
+        <Loader />
       ) : tab === 'log' ? (
         <>
           <div className={styles.actions}>
@@ -289,7 +291,7 @@ export default function Nutrition() {
             />
           ) : log.length === 0 ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🥗</div>
+              <div className={styles.emptyIcon}><Icon name="nutrition" size={40} /></div>
               <h2>Nothing logged yet</h2>
               <p>Tap + Log entry to record what you ate.</p>
             </div>
@@ -316,9 +318,10 @@ export default function Nutrition() {
                     <button
                       className={styles.flagBtn}
                       title={flagged ? 'Marked incomplete — click to clear' : 'Mark day incomplete'}
+                      aria-label={flagged ? 'Marked incomplete — click to clear' : 'Mark day incomplete'}
                       onClick={() => toggleDayIncomplete(day.key)}
                     >
-                      {flagged ? '⚠' : '⚑'}
+                      <Icon name="flag" size={14} filled={flagged} />
                     </button>
                     {day.label}
                   </div>
@@ -407,7 +410,7 @@ export default function Nutrition() {
           <div className={styles.actions}>
             <button className={styles.actionBtn} onClick={() => setModal('food')}>+ Food</button>
             <button className={`${styles.actionBtn} ${styles.actionBtnAlt}`} onClick={() => setModal('ingredient')}>+ Ingredient</button>
-            <button className={`${styles.actionBtn} ${styles.actionBtnAlt}`} onClick={() => setModal('import')}>⬆ Import CSV</button>
+            <button className={`${styles.actionBtn} ${styles.actionBtnAlt}`} onClick={() => setModal('import')}><Icon name="upload" size={14} /> Import CSV</button>
           </div>
 
           <FoodsTable foods={foods} allIngredients={ingredients} onSaved={load} />

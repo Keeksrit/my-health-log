@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { MedicationSchedule, MedicationLog } from '../types/medication'
+import Loader from '../components/ui/Loader'
 import { fetchLogsForSchedule, upsertLog } from '../lib/medication'
 import styles from './MedicationTable.module.css'
 
@@ -77,7 +78,7 @@ export default function MedicationTable({ schedule, onBack }: Props) {
       </div>
 
       {loading ? (
-        <p className={styles.loading}>Loading…</p>
+        <Loader />
       ) : logs.length === 0 ? (
         <p className={styles.loading}>No log entries yet.</p>
       ) : (

@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
-  z-index: 100;
+  z-index: var(--z-modal);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -10,7 +10,7 @@
 
 .sheet {
   background: var(--card);
-  border-radius: 22px 22px 0 0;
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
   width: 100%;
   max-width: 430px;
   max-height: 92vh;
@@ -33,19 +33,19 @@
 }
 
 .title {
-  font-size: 20px;
+  font-size: var(--fs-headline);
   margin-bottom: 8px;
 }
 
 .desc {
-  font-size: 14px;
+  font-size: var(--fs-body);
   color: var(--ink2);
   margin-bottom: 20px;
 }
 
 .label {
   display: block;
-  font-size: 10px;
+  font-size: var(--fs-label);
   font-weight: 600;
   color: var(--ink2);
   letter-spacing: 0.07em;
@@ -57,8 +57,8 @@
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-title);
   color: var(--ink);
   background: var(--bg);
   outline: none;
@@ -69,7 +69,7 @@
 }
 
 .hint {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--ink3);
   margin-top: 4px;
   margin-bottom: 20px;
@@ -80,9 +80,9 @@
   padding: 15px;
   background: var(--accent);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-family: 'Lora', serif;
-  font-size: 17px;
+  font-size: var(--fs-earned);
   color: #fff;
   margin-top: 8px;
   transition: background 0.15s;
@@ -96,8 +96,8 @@
   padding: 12px;
   background: none;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-body);
   color: var(--ink2);
   margin-top: 8px;
 }

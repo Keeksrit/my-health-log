@@ -28,7 +28,7 @@
 }
 
 .name {
-  font-size: 15px;
+  font-size: var(--fs-title);
   font-weight: 500;
   color: var(--ink);
 }
@@ -37,8 +37,8 @@
   display: inline-flex;
   align-items: center;
   padding: 3px 9px;
-  border-radius: 20px;
-  font-size: 11px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-caption);
   font-weight: 600;
   background: var(--accent-l);
   color: var(--accent);
@@ -46,12 +46,12 @@
 }
 
 .time {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   color: var(--ink3);
 }
 
 .note {
-  font-size: 13px;
+  font-size: var(--fs-meta);
   color: var(--ink2);
   margin-top: 7px;
   line-height: 1.5;
@@ -71,7 +71,7 @@
 .photo {
   width: 64px;
   height: 64px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   border: 1px solid var(--border);
 }
@@ -85,7 +85,7 @@
 .dupBtn {
   background: none;
   border: none;
-  font-size: 12px;
+  font-size: var(--fs-caption);
   color: var(--ink3);
   padding: 2px 0;
   cursor: pointer;

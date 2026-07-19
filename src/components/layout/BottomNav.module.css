@@ -9,7 +9,7 @@
   display: flex;
   background: var(--card);
   border-top: 1px solid var(--border);
-  z-index: 50;
+  z-index: var(--z-nav);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -28,17 +28,18 @@
   transition: color 0.15s;
 }
 
-.btn.active .label {
+.btn.active .label,
+.btn.active .icon {
   color: var(--accent);
 }
 
 .icon {
-  font-size: 20px;
+  font-size: var(--fs-headline);
   line-height: 1;
 }
 
 .label {
-  font-size: 10px;
+  font-size: var(--fs-label);
   font-weight: 500;
   color: inherit;
 }

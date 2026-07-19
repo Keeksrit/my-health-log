@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Entry, BodyPartInfo } from '../types'
+import Icon from '../components/ui/Icon'
 import { COVERAGE, COVERAGE_BG, COVERAGE_FG, BODY_PARTS } from '../types'
 import { uid, todayKey } from '../lib/utils'
 import { insertEntries } from '../lib/supabase'
@@ -164,7 +165,7 @@ export default function LogSymptom({ onSaved }: Props) {
           <div>
             {/* Location tag */}
             <div className={styles.locRow}>
-              <span className={styles.locPill}>📍 {locDisplay}</span>
+              <span className={styles.locPill}><Icon name="pin" size={12} /> {locDisplay}</span>
               <button className={styles.changeBtn} onClick={() => setStep('subpart')}>Change</button>
             </div>
 
@@ -239,8 +240,8 @@ export default function LogSymptom({ onSaved }: Props) {
             {/* Photos */}
             <label className={styles.formLabel}>PHOTOS</label>
             <div className={styles.photoBtns}>
-              <button className={styles.photoBtn} onClick={() => camRef.current?.click()}>📷 Camera</button>
-              <button className={styles.photoBtn} onClick={() => galRef.current?.click()}>🖼️ Gallery</button>
+              <button className={styles.photoBtn} onClick={() => camRef.current?.click()}><Icon name="camera" size={16} /> Camera</button>
+              <button className={styles.photoBtn} onClick={() => galRef.current?.click()}><Icon name="image" size={16} /> Gallery</button>
             </div>
             <input ref={camRef} type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handlePhoto} />
             <input ref={galRef} type="file" accept="image/*" multiple style={{ display:'none' }} onChange={handlePhoto} />

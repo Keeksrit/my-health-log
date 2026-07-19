@@ -12,14 +12,14 @@
   max-width: 320px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   padding: 32px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .brand {
   font-family: 'Lora', serif;
-  font-size: 20px;
+  font-size: var(--fs-headline);
   font-weight: 600;
   color: var(--ink);
   margin-bottom: 24px;
@@ -27,7 +27,7 @@
 
 .label {
   display: block;
-  font-size: 13px;
+  font-size: var(--fs-meta);
   color: var(--ink2);
   margin-bottom: 4px;
 }
@@ -38,14 +38,14 @@
   margin-bottom: 14px;
   box-sizing: border-box;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--ink);
 }
 
 .error {
   color: var(--red);
-  font-size: 13px;
+  font-size: var(--fs-meta);
   margin-bottom: 14px;
 }
 
@@ -53,10 +53,10 @@
   width: 100%;
   padding: 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--accent);
   color: #fff;
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 

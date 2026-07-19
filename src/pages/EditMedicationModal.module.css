@@ -3,8 +3,8 @@
   padding: 12px;
   background: none;
   border: 1px solid var(--red);
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-body);
   color: var(--red);
   cursor: pointer;
   margin-top: 8px;

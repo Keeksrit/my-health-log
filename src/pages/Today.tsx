@@ -3,6 +3,7 @@ import type { Entry } from '../types'
 import { dateKey, todayKey, uid } from '../lib/utils'
 import { insertEntry, deleteEntry } from '../lib/supabase'
 import EntryCard from '../components/ui/EntryCard'
+import Icon from '../components/ui/Icon'
 import DuplicateDayModal from './DuplicateDayModal'
 import styles from './Today.module.css'
 
@@ -29,16 +30,16 @@ export default function Today({ entries, onReload }: Props) {
         <p className={styles.sec}>Today's entries</p>
         {todayEntries.length > 0 && (
           <button className={styles.dupDayBtn} onClick={() => setDupOpen(true)}>
-            ⎘ Duplicate day
+            <Icon name="copy" size={14} /> Duplicate day
           </button>
         )}
       </div>
 
       {todayEntries.length === 0 ? (
         <div className={styles.empty}>
-          <div className={styles.emptyIcon}>🌿</div>
+          <div className={styles.emptyIcon}><Icon name="leaf" size={40} /></div>
           <h2>Nothing logged yet</h2>
-          <p>Tap 🩹 Symptom below<br />to start logging.</p>
+          <p>Tap Symptom below<br />to start logging.</p>
         </div>
       ) : (
         todayEntries.map(e => (

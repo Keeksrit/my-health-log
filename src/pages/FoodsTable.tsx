@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Food, Ingredient } from '../types/nutrition'
+import Icon from '../components/ui/Icon'
 import { useEditableRows } from '../lib/useEditableRows'
 import { useFoodTypes } from '../lib/useFoodTypes'
 import { updateFood, setFoodIngredients, deleteFood } from '../lib/nutrition'
@@ -60,7 +61,7 @@ export default function FoodsTable({ foods, allIngredients, onSaved }: Props) {
           ) : (
             <>
               {foods.length > 0 && <button className={styles.tableBtn} onClick={t.begin}>Edit</button>}
-              <button className={styles.tableBtn} onClick={() => downloadCsv('foods.csv', foodsToCsv(foods))}>⬇ Export</button>
+              <button className={styles.tableBtn} onClick={() => downloadCsv('foods.csv', foodsToCsv(foods))}><Icon name="download" size={14} /> Export</button>
             </>
           )}
         </div>

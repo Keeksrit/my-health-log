@@ -1,24 +1,24 @@
-.page { padding: 1rem; max-width: 480px; margin: 0 auto; }
-.heading { color: var(--ink); margin: 0 0 .25rem; }
-.hint { color: var(--ink2); font-size: .85rem; margin: 0 0 1rem; }
+.page { padding: 16px var(--gutter) 24px; }
+.heading { font-size: var(--fs-headline); color: var(--ink); margin: 0 0 .25rem; }
+.hint { color: var(--ink2); font-size: var(--fs-meta); margin: 0 0 1rem; }
 .list { list-style: none; padding: 0; margin: 0 0 1rem; display: flex; flex-direction: column; gap: .5rem; }
 .item {
   display: flex; justify-content: space-between; align-items: center;
   background: var(--card); border: 1px solid var(--border);
-  border-radius: 8px; padding: .6rem .8rem; color: var(--ink);
+  border-radius: var(--radius-sm); padding: .6rem .8rem; color: var(--ink);
 }
 .remove { background: none; border: none; color: var(--red); font-size: 1.2rem; cursor: pointer; line-height: 1; }
 .addRow { display: flex; gap: .5rem; }
 .input {
   flex: 1; background: var(--bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: .6rem .8rem; color: var(--ink);
+  border-radius: var(--radius-sm); padding: .6rem .8rem; color: var(--ink);
 }
 .add {
-  background: var(--accent); border: none; border-radius: 8px;
+  background: var(--accent); border: none; border-radius: var(--radius-sm);
   padding: .6rem 1rem; color: var(--bg); cursor: pointer;
 }
 .add:disabled { opacity: .6; cursor: default; }
-.error { color: var(--red); font-size: .85rem; margin-top: .75rem; }
+.error { color: var(--red); font-size: var(--fs-meta); margin-top: .75rem; }
 .swatches { display: flex; flex-wrap: wrap; gap: .3rem; margin: 0 .5rem; }
 .swatch {
   width: 18px; height: 18px; border-radius: 50%;

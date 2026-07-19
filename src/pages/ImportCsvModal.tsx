@@ -82,19 +82,19 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
             {summary.blocked.length > 0 && (
               <>
                 <label className={formStyles.label}>COULD NOT DELETE ({summary.blocked.length})</label>
-                <ul>{summary.blocked.map((s, i) => <li key={i} style={{ fontSize: 13, color: 'var(--danger, #B83A3A)' }}>{s}</li>)}</ul>
+                <ul>{summary.blocked.map((s, i) => <li key={i} style={{ fontSize: '0.8125rem', color: 'var(--danger, #B83A3A)' }}>{s}</li>)}</ul>
               </>
             )}
             {summary.stubs.length > 0 && (
               <>
                 <label className={formStyles.label}>STUBS CREATED ({summary.stubs.length})</label>
-                <ul>{summary.stubs.map((s, i) => <li key={i} style={{ fontSize: 13 }}>{s}</li>)}</ul>
+                <ul>{summary.stubs.map((s, i) => <li key={i} style={{ fontSize: '0.8125rem' }}>{s}</li>)}</ul>
               </>
             )}
             {summary.skipped.length > 0 && (
               <>
                 <label className={formStyles.label}>SKIPPED ({summary.skipped.length})</label>
-                <ul>{summary.skipped.map((s, i) => <li key={i} style={{ fontSize: 13, color: 'var(--danger, #B83A3A)' }}>{s}</li>)}</ul>
+                <ul>{summary.skipped.map((s, i) => <li key={i} style={{ fontSize: '0.8125rem', color: 'var(--danger, #B83A3A)' }}>{s}</li>)}</ul>
               </>
             )}
             <button className={formStyles.nextBtn} onClick={onClose}>Done</button>
@@ -132,7 +132,7 @@ export default function ImportCsvModal({ onClose, onSaved }: Props) {
               <>
                 <label className={formStyles.label}>PREVIEW ({rows.length} row(s))</label>
                 <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 10, marginBottom: 12 }}>
-                  <table style={{ fontSize: 12, borderCollapse: 'collapse', width: '100%' }}>
+                  <table style={{ fontSize: '0.75rem', borderCollapse: 'collapse', width: '100%' }}>
                     <tbody>
                       {rows.slice(0, 20).map((r, ri) => (
                         <tr key={ri}>

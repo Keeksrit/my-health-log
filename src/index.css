@@ -13,9 +13,40 @@
   --border:     rgba(0,0,0,0.08);
   --body-fill:  #EAE5DC;
   --body-stroke:#A09890;
-  --r:          14px;
+  --r:          14px;   /* alias of --radius-lg */
   --nav-h:      64px;
   --header-h:   80px;
+
+  /* Radius scale. See DESIGN.md rounded. */
+  --radius-sm:    8px;    /* inputs, selects, toggles, dropdowns, thumbnails, tooltips */
+  --radius-md:   12px;    /* primary / save buttons, nested modal panels */
+  --radius-lg:   14px;    /* content cards (= --r) */
+  --radius-pill: 20px;    /* pills, tabs, tags, chips, badges */
+  --radius-sheet:22px;    /* bottom-sheet top corners */
+  --radius-full: 999px;   /* fully-round pills (use 50% for true circles) */
+
+  /* Layout */
+  --gutter:     20px;     /* canonical page side gutter */
+  --wide-max:   1290px;   /* data-table breakout width (Nutrition, Tests) */
+
+  /* Semantic z-index scale */
+  --z-content:    1;      /* raised in-flow content */
+  --z-dropdown:   5;      /* menus, tooltips, sticky table headers */
+  --z-sticky:    10;      /* in-page sticky sub-headers */
+  --z-nav:       50;      /* fixed app header + bottom nav */
+  --z-modal:    100;      /* modal / sheet backdrop + panel */
+  --z-toast:    200;      /* reserved */
+
+  /* Type scale (rem @ root 16px). See DESIGN.md §3. */
+  --fs-numeral: 2rem;       /* 32px · Lora 600 · hero stat numeral only */
+  --fs-display: 1.375rem;   /* 22px · Lora 600 · app header title */
+  --fs-headline:1.25rem;    /* 20px · Lora 600 · page / sheet / modal / empty-state titles */
+  --fs-earned:  1.0625rem;  /* 17px · Lora 600 · primary save / continue actions */
+  --fs-title:   0.9375rem;  /* 15px · DM Sans 500 · list-row headings, inputs, section headers (600) */
+  --fs-body:    0.875rem;   /* 14px · DM Sans 400 · base body */
+  --fs-meta:    0.8125rem;  /* 13px · DM Sans · secondary body, notes, helpers, small buttons */
+  --fs-caption: 0.75rem;    /* 12px · DM Sans · timestamps, tags, badges, pills */
+  --fs-label:   0.625rem;   /* 10px · DM Sans 600 · uppercase field labels & table headers */
 }
 
 *, *::before, *::after {
@@ -29,6 +60,8 @@ html, body, #root {
   height: 100%;
   background: var(--bg);
   font-family: 'DM Sans', sans-serif;
+  font-size: var(--fs-body);
+  line-height: 1.5;
   color: var(--ink);
   overscroll-behavior: none;
 }

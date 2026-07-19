@@ -1,6 +1,7 @@
 import type { Entry } from '../../types'
 import SevDots from './SevDots'
 import CoverageBar from './CoverageBar'
+import Icon from './Icon'
 import { fmtTime } from '../../lib/utils'
 import styles from './EntryCard.module.css'
 
@@ -16,7 +17,7 @@ export default function EntryCard({ entry, onDuplicate }: Props) {
         <div className={styles.left}>
           <span className={styles.name}>{entry.name}</span>
           {entry.location_label && (
-            <span className={styles.locPill}>📍 {entry.location_label}</span>
+            <span className={styles.locPill}><Icon name="pin" size={12} /> {entry.location_label}</span>
           )}
         </div>
         <div className={styles.right}>
@@ -41,7 +42,7 @@ export default function EntryCard({ entry, onDuplicate }: Props) {
       {onDuplicate && (
         <div className={styles.actions}>
           <button className={styles.dupBtn} onClick={() => onDuplicate(entry)}>
-            ⎘ Duplicate
+            <Icon name="copy" size={14} /> Duplicate
           </button>
         </div>
       )}

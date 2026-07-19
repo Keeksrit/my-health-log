@@ -1,5 +1,5 @@
 .page {
-  padding: 16px 20px 24px;
+  padding: 16px var(--gutter) 24px;
 }
 
 .calHeader {
@@ -10,7 +10,7 @@
 }
 
 .monthTitle {
-  font-size: 18px;
+  font-size: var(--fs-headline);
   font-weight: 600;
   letter-spacing: -0.3px;
 }
@@ -19,7 +19,7 @@
   width: 32px;
   height: 32px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: none;
   font-size: 18px;
   color: var(--ink2);
@@ -37,7 +37,7 @@
 
 .dayName {
   text-align: center;
-  font-size: 10px;
+  font-size: var(--fs-label);
   color: var(--ink3);
   padding: 4px 0;
   font-weight: 600;
@@ -49,7 +49,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--fs-meta);
   color: var(--ink2);
   cursor: pointer;
   transition: background 0.1s;
@@ -80,18 +80,18 @@
 }
 
 .sec {
-  font-size: 10px;
+  font-size: var(--fs-title);
   font-weight: 600;
-  color: var(--ink2);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  color: var(--ink);
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .dupDayBtn {
-  font-size: 11px;
+  font-size: var(--fs-caption);
   font-weight: 600;
   padding: 4px 10px;
-  border-radius: 20px;
+  border-radius: var(--radius-pill);
   background: var(--accent-l);
   color: var(--accent);
   border: none;
@@ -102,6 +102,6 @@
   border: 1px solid var(--border);
   border-radius: var(--r);
   padding: 14px;
-  font-size: 14px;
+  font-size: var(--fs-body);
   color: var(--ink2);
 }

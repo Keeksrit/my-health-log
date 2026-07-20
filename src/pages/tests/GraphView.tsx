@@ -127,6 +127,7 @@ function AllergyScale({ ser }: { ser: AnalyteSeries }) {
   // Latest numeric point drives the arrow; older points listed in the tooltip.
   const sorted = [...ser.numeric].sort((a, b) => a.t - b.t)
   const latest = sorted[sorted.length - 1]
+  if (!latest) return null
   const pos = positionFor(latest.v, latest.censored)
   const older = sorted.slice(0, -1).map(p => `${new Date(p.t).toLocaleDateString()}: ${p.raw}`).join('\n')
   const W = 260, H = 40, cells = CAP_RAST_THRESHOLDS.length + 1

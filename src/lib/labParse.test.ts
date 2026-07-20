@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseResultNum, parseRefBounds, parseSession, censoredDir } from './labParse'
+import { parseResultNum, parseRefBounds, parseSession, censoredDir, splitSessions, parseText } from './labParse'
 
 describe('parseResultNum', () => {
   it('parses a plain decimal', () => {
@@ -73,14 +73,69 @@ describe('parseSession', () => {
       analyte: 'd1 Dermatophagoides pteronyssinus',
       result_raw: '<0.10', result_num: 0.10, unit: 'kU/L',
       ref: '<0.35', ref_min: null, ref_max: 0.35, verdict: 'Negatiivne',
+      panel: null, note: null,
     })
     expect(s.results[1]).toEqual({
       analyte: 'Kolesterool',
       result_raw: '5,2', result_num: 5.2, unit: 'mmol/L',
       ref: '2.0-5.0', ref_min: 2.0, ref_max: 5.0, verdict: 'Kõrge',
+      panel: null, note: null,
     })
   })
   it('throws when the sample id is missing', () => {
     expect(() => parseSession('Analüüs\tTulemus\nKolesterool\t5\tmmol/L\t2-5')).toThrow(/sample/i)
+  })
+})
+
+const MULTI = [
+  'Laboratoorsed uuringud',
+  'Proovimaterjal: VERI, Proovinõu ID: L001, Võetud: 01.02.2026 09:00',
+  'Veri - 01.02.2026 09:00',
+  'Hemogramm 5-osalise leukogrammiga',
+  'Analüüs\tTulemus\tÜhik\tRef.väärtus',
+  'Hemoglobiin\t145\tg/L\t134 - 170',
+  'Tulemuse märkus: Proovimaterjal lipeemiline, tulemus võib olla mõjutatud',
+  'Proovimaterjal: PLASMA, Proovinõu ID: L002, Võetud: 03.02.2026 10:30',
+  'Plasma - 03.02.2026 10:30',
+  'Analüüs\tTulemus\tÜhik\tRef.väärtus',
+  'CRP\t<0.6\tmg/L\t<5',
+  'Tulemuse tõlgendus: optimaalne',
+].join('\n')
+
+describe('splitSessions', () => {
+  it('splits a paste into one block per Proovinõu ID and drops the preamble', () => {
+    const blocks = splitSessions(MULTI)
+    expect(blocks).toHaveLength(2)
+    expect(blocks[0]).toContain('L001')
+    expect(blocks[0]).not.toContain('L002')
+    expect(blocks[1]).toContain('L002')
+  })
+  it('returns the whole text as one block when no meta line is present', () => {
+    expect(splitSessions('just some text')).toEqual(['just some text'])
+  })
+})
+
+describe('parseSession panels & notes', () => {
+  it('stamps the panel header on results and attaches Tulemuse märkus as note', () => {
+    const s = parseSession(splitSessions(MULTI)[0])
+    expect(s.results).toHaveLength(1)
+    expect(s.results[0].analyte).toBe('Hemoglobiin')
+    expect(s.results[0].panel).toBe('Hemogramm 5-osalise leukogrammiga')
+    expect(s.results[0].note).toBe('Proovimaterjal lipeemiline, tulemus võib olla mõjutatud')
+    expect(s.results[0].verdict).toBeNull()
+  })
+  it('preserves the raw block text', () => {
+    const block = splitSessions(MULTI)[0]
+    expect(parseSession(block).raw_text).toBe(block)
+  })
+})
+
+describe('parseText', () => {
+  it('parses every session in a multi-sample paste', () => {
+    const sessions = parseText(MULTI)
+    expect(sessions.map(s => s.sample_id)).toEqual(['L001', 'L002'])
+    expect(sessions[1].results[0]).toMatchObject({
+      analyte: 'CRP', result_num: 0.6, verdict: 'optimaalne', note: null, panel: null,
+    })
   })
 })

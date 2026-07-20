@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseResultNum, parseRefBounds, parseSession } from './labParse'
+import { parseResultNum, parseRefBounds, parseSession, censoredDir } from './labParse'
 
 describe('parseResultNum', () => {
   it('parses a plain decimal', () => {
@@ -8,13 +8,25 @@ describe('parseResultNum', () => {
   it('accepts comma decimals', () => {
     expect(parseResultNum('5,2')).toBe(5.2)
   })
-  it('returns null for censored (</>) values', () => {
-    expect(parseResultNum('<0.10')).toBeNull()
-    expect(parseResultNum('> 100')).toBeNull()
+  it('returns the numeric bound for censored (</>) values', () => {
+    expect(parseResultNum('<0.10')).toBe(0.10)
+    expect(parseResultNum('> 100')).toBe(100)
   })
   it('returns null for non-numeric text', () => {
     expect(parseResultNum('Negatiivne')).toBeNull()
     expect(parseResultNum('')).toBeNull()
+  })
+})
+
+describe('censoredDir', () => {
+  it('reads the censoring direction from the raw string', () => {
+    expect(censoredDir('<0.6')).toBe('<')
+    expect(censoredDir('> 100')).toBe('>')
+  })
+  it('returns null for plain numbers and words', () => {
+    expect(censoredDir('5.2')).toBeNull()
+    expect(censoredDir('Negatiivne')).toBeNull()
+    expect(censoredDir('')).toBeNull()
   })
 })
 
@@ -59,7 +71,7 @@ describe('parseSession', () => {
     expect(s.results).toHaveLength(2)
     expect(s.results[0]).toEqual({
       analyte: 'd1 Dermatophagoides pteronyssinus',
-      result_raw: '<0.10', result_num: null, unit: 'kU/L',
+      result_raw: '<0.10', result_num: 0.10, unit: 'kU/L',
       ref: '<0.35', ref_min: null, ref_max: 0.35, verdict: 'Negatiivne',
     })
     expect(s.results[1]).toEqual({

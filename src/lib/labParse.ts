@@ -18,14 +18,24 @@ export interface ParsedSession {
   results: ParsedResult[]
 }
 
-// A bare number, comma- or dot-decimal. Censored (< / >) and text → null,
-// so only plottable values get a result_num (censored values still keep
-// their verbatim result_raw for the table).
+// A bare number, comma- or dot-decimal. Censored (< / >) values return their
+// numeric BOUND (>100 → 100, <0.6 → 0.6) so they stay plottable; the direction
+// is recovered separately via censoredDir. Non-censored text (negatiivne) and
+// empty strings return null.
 export function parseResultNum(raw: string): number | null {
-  const t = raw.trim()
-  if (!t || /^[<>]/.test(t)) return null
+  const t = raw.trim().replace(/^[<>]\s*/, '')
+  if (!t) return null
   const n = Number(t.replace(',', '.'))
   return Number.isFinite(n) ? n : null
+}
+
+// The censoring direction from the verbatim result string, or null if the value
+// is not censored. Derived at render time so no schema column is needed.
+export function censoredDir(raw: string): '<' | '>' | null {
+  const t = raw.trim()
+  if (t.startsWith('<')) return '<'
+  if (t.startsWith('>')) return '>'
+  return null
 }
 
 const NUM = String.raw`-?\d+(?:[.,]\d+)?`

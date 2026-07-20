@@ -215,13 +215,13 @@ function LabDescriptionsSection() {
         {descriptions.map(d => (
           <li key={d.analyte} className={styles.item}>
             <span><strong>{d.analyte}</strong>{d.description ? ` — ${d.description}` : ''}</span>
-            <select value={d.category ?? ''} onChange={e => handleMeta(d.analyte, { category: e.target.value })} aria-label={`${d.analyte} category`}>
+            <select className={styles.metaSelect} value={d.category ?? ''} onChange={e => handleMeta(d.analyte, { category: e.target.value })} aria-label={`${d.analyte} category`}>
               <option value="">—</option>
               {['allergy', 'hematology', 'infection', 'chemistry', 'liver-kidney', 'inflammation', 'vitamins'].map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
-            <select value={d.value_type ?? ''} onChange={e => handleMeta(d.analyte, { value_type: e.target.value })} aria-label={`${d.analyte} value type`}>
+            <select className={styles.metaSelect} value={d.value_type ?? ''} onChange={e => handleMeta(d.analyte, { value_type: e.target.value })} aria-label={`${d.analyte} value type`}>
               <option value="">—</option>
               <option value="number">number</option>
               <option value="binary">binary</option>

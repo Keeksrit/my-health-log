@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { descriptionsToCsv, parseDescRows, computeDescPlan } from './labDescriptionsCsv'
+import { parseCsv } from './nutrition'
 
 const row = { analyte: 'CRP', category: 'inflammation', value_type: 'number', material: 'VERI', description: 'C-reactive protein' }
 
@@ -8,6 +9,11 @@ describe('descriptions CSV round-trip', () => {
     const csv = descriptionsToCsv([row])
     const back = parseDescRows(csv.trim().split(/\r?\n/).map(l => l.split(',').map(c => c.replace(/^"|"$/g, ''))))
     expect(back).toEqual([row])
+  })
+  it('round-trips a field containing a comma via the real CSV parser', () => {
+    const commaRow = { analyte: 'IgE', category: 'allergy', value_type: 'number', material: 'VERI', description: 'total, serum' }
+    const csv = descriptionsToCsv([commaRow])
+    expect(parseDescRows(parseCsv(csv))).toEqual([commaRow])
   })
   it('drops the header row and trims', () => {
     const rows = parseDescRows([

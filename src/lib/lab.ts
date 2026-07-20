@@ -12,6 +12,8 @@ export interface LabResult {
   ref_min: number | null
   ref_max: number | null
   verdict: string | null
+  panel: string | null
+  note: string | null
 }
 
 export interface LabSession {
@@ -20,6 +22,7 @@ export interface LabSession {
   material: string | null
   taken_at: string
   created_at: string
+  raw_text: string | null
   results: LabResult[]
 }
 
@@ -41,7 +44,7 @@ export async function fetchSampleIds(): Promise<string[]> {
 export async function saveSession(s: ParsedSession): Promise<void> {
   const { data, error } = await supabase
     .from('lab_sessions')
-    .insert({ sample_id: s.sample_id, material: s.material, taken_at: s.taken_at })
+    .insert({ sample_id: s.sample_id, material: s.material, taken_at: s.taken_at, raw_text: s.raw_text })
     .select('id')
     .single()
   if (error) {

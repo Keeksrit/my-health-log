@@ -22,3 +22,19 @@
 .colHead { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .delCol { background: none; border: none; color: var(--ink2); cursor: pointer; font-size: var(--fs-body); line-height: 1; padding: 0 2px; }
 .delCol:hover { color: var(--red); }
+
+.unit { color: var(--ink2); font-weight: 400; font-size: 12px; }
+.lineDashed { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; opacity: 0.7; }
+.glyph { fill: var(--accent); font-size: 13px; font-weight: 700; }
+.arrow { fill: var(--ink); }
+.classNum { fill: var(--ink2); font-size: 10px; }
+.verdictPos { border-color: var(--red); color: var(--ink); }
+.verdictNeg { color: var(--ink2); }
+/* Allergy class bands, green (0) → red (6); class number is the second cue. */
+.band0 { fill: #2e7d32; }
+.band1 { fill: #66bb6a; }
+.band2 { fill: #cddc39; }
+.band3 { fill: #ffca28; }
+.band4 { fill: #fb8c00; }
+.band5 { fill: #f4511e; }
+.band6 { fill: #c62828; }

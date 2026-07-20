@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeYDomain, scalePoints, refBandRect, eventLinesX, niceTicks } from './labChart'
+import { computeYDomain, scalePoints, refBandRect, eventLinesX, niceTicks, chartTypeFor, lineSegments } from './labChart'
 
 const DIMS = { width: 100, height: 100, padL: 10, padR: 10, padT: 10, padB: 10 }
 // plot area: x in [10, 90] (width 80), y in [10, 90] (height 80)
@@ -55,5 +55,46 @@ describe('niceTicks', () => {
     expect(ticks[0]).toBeLessThanOrEqual(0)
     expect(ticks[ticks.length - 1]).toBeGreaterThanOrEqual(10)
     for (let i = 1; i < ticks.length; i++) expect(ticks[i]).toBeGreaterThan(ticks[i - 1])
+  })
+})
+
+describe('chartTypeFor', () => {
+  it('allergy + number → allergy-scale', () => {
+    expect(chartTypeFor({ category: 'allergy', value_type: 'number' }, true)).toBe('allergy-scale')
+  })
+  it('number (non-allergy) → timeseries', () => {
+    expect(chartTypeFor({ category: 'chemistry', value_type: 'number' }, true)).toBe('timeseries')
+  })
+  it('binary → strip', () => {
+    expect(chartTypeFor({ category: 'infection', value_type: 'binary' }, false)).toBe('strip')
+  })
+  it('no meta but numeric points → timeseries', () => {
+    expect(chartTypeFor(null, true)).toBe('timeseries')
+  })
+  it('no meta, no numeric points → strip', () => {
+    expect(chartTypeFor(null, false)).toBe('strip')
+  })
+})
+
+describe('lineSegments', () => {
+  it('dashes a segment when either endpoint is censored', () => {
+    const segs = lineSegments([
+      { x: 0, y: 0, censored: null },
+      { x: 1, y: 1, censored: '>' },
+      { x: 2, y: 2, censored: null },
+    ])
+    expect(segs).toHaveLength(2)
+    expect(segs[0]).toEqual({ x1: 0, y1: 0, x2: 1, y2: 1, dashed: true })  // touches censored
+    expect(segs[1]).toEqual({ x1: 1, y1: 1, x2: 2, y2: 2, dashed: true })  // touches censored
+  })
+  it('keeps a segment solid when neither endpoint is censored', () => {
+    const segs = lineSegments([
+      { x: 0, y: 0, censored: null },
+      { x: 1, y: 1, censored: null },
+    ])
+    expect(segs[0].dashed).toBe(false)
+  })
+  it('returns no segments for a single point', () => {
+    expect(lineSegments([{ x: 0, y: 0, censored: null }])).toEqual([])
   })
 })

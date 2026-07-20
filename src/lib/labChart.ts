@@ -69,14 +69,17 @@ export function niceTicks(yMin: number, yMax: number, count = 5): number[] {
 export type ChartType = 'allergy-scale' | 'timeseries' | 'strip'
 
 // Pick the chart from the analyte's classification. Only allergy+number takes the
-// class scale; any numeric analyte is a time-series; everything else is a strip.
+// class scale; only an explicitly-binary analyte is a strip; any other analyte
+// with numeric points is a time-series. An unclassified dictionary row
+// (value_type null) with numeric data therefore still charts as a time-series,
+// same as an analyte with no dictionary row at all.
 export function chartTypeFor(
   meta: { category: string | null; value_type: string | null } | null,
   hasNumeric: boolean,
 ): ChartType {
   if (meta?.category === 'allergy' && meta.value_type === 'number') return 'allergy-scale'
-  if (meta?.value_type === 'number') return 'timeseries'
-  if (!meta && hasNumeric) return 'timeseries'
+  if (meta?.value_type === 'binary') return 'strip'
+  if (hasNumeric) return 'timeseries'
   return 'strip'
 }
 

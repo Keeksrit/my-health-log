@@ -71,6 +71,9 @@ describe('chartTypeFor', () => {
   it('no meta but numeric points → timeseries', () => {
     expect(chartTypeFor(null, true)).toBe('timeseries')
   })
+  it('unclassified dict row (value_type null) with numeric points → timeseries', () => {
+    expect(chartTypeFor({ category: null, value_type: null }, true)).toBe('timeseries')
+  })
   it('no meta, no numeric points → strip', () => {
     expect(chartTypeFor(null, false)).toBe('strip')
   })

@@ -1,16 +1,30 @@
 import { toCsv } from './nutritionCsv'
 
-export interface DescRow { analyte: string; description: string }
+export interface DescRow {
+  analyte: string
+  category: string
+  value_type: string
+  material: string
+  description: string
+}
+
+const HEADERS = ['analyte', 'category', 'value_type', 'material', 'description']
 
 export function descriptionsToCsv(rows: DescRow[]): string {
-  return toCsv(['analyte', 'description'], rows.map(r => [r.analyte, r.description ?? '']))
+  return toCsv(HEADERS, rows.map(r => [r.analyte, r.category ?? '', r.value_type ?? '', r.material ?? '', r.description ?? '']))
 }
 
 export function parseDescRows(cells: string[][]): DescRow[] {
   const rows = cells.length && cells[0][0]?.trim().toLowerCase() === 'analyte'
     ? cells.slice(1) : cells
   return rows
-    .map(r => ({ analyte: (r[0] ?? '').trim(), description: (r[1] ?? '').trim() }))
+    .map(r => ({
+      analyte: (r[0] ?? '').trim(),
+      category: (r[1] ?? '').trim(),
+      value_type: (r[2] ?? '').trim(),
+      material: (r[3] ?? '').trim(),
+      description: (r[4] ?? '').trim(),
+    }))
     .filter(r => r.analyte)
 }
 

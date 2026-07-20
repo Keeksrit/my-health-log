@@ -6,7 +6,7 @@ import { useFoodTypes } from '../lib/useFoodTypes'
 import { addFoodType, deleteFoodType, updateFoodTypeColor } from '../lib/foodTypes'
 import { PALETTE } from '../lib/foodTypeColors'
 import { useLabDescriptions } from '../lib/useLabDescriptions'
-import { upsertDescription, deleteDescription, applyDescPlan } from '../lib/labDescriptions'
+import { upsertDescription, deleteDescription, applyDescPlan, updateAnalyteMeta } from '../lib/labDescriptions'
 import { descriptionsToCsv, parseDescRows, computeDescPlan } from '../lib/labDescriptionsCsv'
 import { fetchEvents, addEvent, updateEvent, deleteEvent, type LabEvent } from '../lib/labEvents'
 import { parseCsv } from '../lib/nutrition'
@@ -173,10 +173,21 @@ function LabDescriptionsSection() {
     try { await deleteDescription(a); await reload() }
     catch (err: any) { setError(err?.message ?? 'Could not delete.') }
   }
+  async function handleMeta(analyte: string, patch: { category?: string; value_type?: string }) {
+    setError(null)
+    try { await updateAnalyteMeta(analyte, patch); await reload() }
+    catch (err: any) { setError(err?.message ?? 'Could not update.') }
+  }
   function handleExport() {
-    const csv = descriptionsToCsv(descriptions.map(d => ({ analyte: d.analyte, description: d.description ?? '' })))
+    const csv = descriptionsToCsv(descriptions.map(d => ({
+      analyte: d.analyte,
+      category: d.category ?? '',
+      value_type: d.value_type ?? '',
+      material: d.material ?? '',
+      description: d.description ?? '',
+    })))
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
-    const a = document.createElement('a'); a.href = url; a.download = 'analyte-descriptions.csv'; a.click()
+    const a = document.createElement('a'); a.href = url; a.download = 'analyte-dictionary.csv'; a.click()
     URL.revokeObjectURL(url)
   }
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -193,8 +204,8 @@ function LabDescriptionsSection() {
 
   return (
     <>
-      <h2 className={styles.heading}>Analyte descriptions</h2>
-      <p className={styles.hint}>What each analyte means. Shown in the Tests table &amp; charts. Edit here or via CSV.</p>
+      <h2 className={styles.heading}>Analyte dictionary</h2>
+      <p className={styles.hint}>What each analyte means and how it charts. Category &amp; type drive the chart. Edit here or via CSV.</p>
       <div className={styles.addRow}>
         <button className={styles.add} type="button" onClick={handleExport}><Icon name="download" size={14} /> Export CSV</button>
         <button className={styles.add} type="button" onClick={() => fileRef.current?.click()}><Icon name="upload" size={14} /> Import CSV (sync)</button>
@@ -203,7 +214,18 @@ function LabDescriptionsSection() {
       <ul className={styles.list}>
         {descriptions.map(d => (
           <li key={d.analyte} className={styles.item}>
-            <span><strong>{d.analyte}</strong> — {d.description}</span>
+            <span><strong>{d.analyte}</strong>{d.description ? ` — ${d.description}` : ''}</span>
+            <select className={styles.metaSelect} value={d.category ?? ''} onChange={e => handleMeta(d.analyte, { category: e.target.value })} aria-label={`${d.analyte} category`}>
+              <option value="">—</option>
+              {['allergy', 'hematology', 'infection', 'chemistry', 'liver-kidney', 'inflammation', 'vitamins'].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <select className={styles.metaSelect} value={d.value_type ?? ''} onChange={e => handleMeta(d.analyte, { value_type: e.target.value })} aria-label={`${d.analyte} value type`}>
+              <option value="">—</option>
+              <option value="number">number</option>
+              <option value="binary">binary</option>
+            </select>
             <button className={styles.remove} onClick={() => handleDelete(d.analyte)} aria-label={`Delete ${d.analyte}`}>×</button>
           </li>
         ))}

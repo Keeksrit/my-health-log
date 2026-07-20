@@ -7,11 +7,16 @@
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: .6rem .8rem; color: var(--ink);
 }
-.remove { background: none; border: none; color: var(--red); font-size: 1.2rem; cursor: pointer; line-height: 1; }
+.remove { background: none; border: none; color: var(--red); font-size: var(--fs-headline); cursor: pointer; line-height: 1; }
 .addRow { display: flex; gap: .5rem; }
 .input {
   flex: 1; background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: .6rem .8rem; color: var(--ink);
+}
+.metaSelect {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: .6rem .8rem; color: var(--ink);
+  font-size: var(--fs-meta);
 }
 .add {
   background: var(--accent); border: none; border-radius: var(--radius-sm);

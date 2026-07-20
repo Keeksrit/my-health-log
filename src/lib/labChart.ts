@@ -65,3 +65,35 @@ export function niceTicks(yMin: number, yMax: number, count = 5): number[] {
   for (let v = start; v <= yMax + step * 0.5; v += step) ticks.push(Number(v.toFixed(6)))
   return ticks
 }
+
+export type ChartType = 'allergy-scale' | 'timeseries' | 'strip'
+
+// Pick the chart from the analyte's classification. Only allergy+number takes the
+// class scale; only an explicitly-binary analyte is a strip; any other analyte
+// with numeric points is a time-series. An unclassified dictionary row
+// (value_type null) with numeric data therefore still charts as a time-series,
+// same as an analyte with no dictionary row at all.
+export function chartTypeFor(
+  meta: { category: string | null; value_type: string | null } | null,
+  hasNumeric: boolean,
+): ChartType {
+  if (meta?.category === 'allergy' && meta.value_type === 'number') return 'allergy-scale'
+  if (meta?.value_type === 'binary') return 'strip'
+  if (hasNumeric) return 'timeseries'
+  return 'strip'
+}
+
+export interface ScaledPoint { x: number; y: number; censored: '<' | '>' | null }
+
+// Consecutive-pair segments. A segment is dashed when either endpoint is a
+// censored (>/<) value, signalling its exact position is uncertain.
+export function lineSegments(
+  pts: ScaledPoint[],
+): { x1: number; y1: number; x2: number; y2: number; dashed: boolean }[] {
+  const segs: { x1: number; y1: number; x2: number; y2: number; dashed: boolean }[] = []
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i]
+    segs.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, dashed: a.censored != null || b.censored != null })
+  }
+  return segs
+}
